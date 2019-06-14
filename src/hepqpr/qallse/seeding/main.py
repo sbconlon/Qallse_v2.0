@@ -34,14 +34,7 @@ def run_seeding(hits_path=None, hits=None, config_cls=HptSeedingConfig):
 
 
 def structures_to_doublets(hits: pd.DataFrame = None, sps: SpacepointStorage = None, ds: DoubletStorage = None):
-    doublets = []
-    for i, sp in enumerate(ds.spmIdx):
-        inner_indexes = ds.inner[ds.innerStart[i]:ds.innerStart[i + 1 if i + 1 < len(ds.spmIdx) else -1]]
-        doublets += [(sps.idsp[i], sps.idsp[sp]) for i in inner_indexes]
-        outer_indexes = ds.outer[ds.outerStart[i]:ds.outerStart[i + 1 if i + 1 < len(ds.spmIdx) else -1]]
-        doublets += [(sps.idsp[sp], sps.idsp[i]) for i in outer_indexes]
-
-    return np.unique(np.array(doublets), axis=0)
+    return np.array(ds.doublets)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))

@@ -154,6 +154,8 @@ class QallseBase(ABC):
 
     def _create_doublets(self, initial_doublets):
         # Generate Doublet structures from the initial doublets, calling _is_invalid_doublet to apply early cuts
+        print('Initial_Doublets')
+        print(initial_doublets)
         doublets = []
         for (start_id, end_id) in initial_doublets:
             start, end = self.hits[start_id], self.hits[end_id]

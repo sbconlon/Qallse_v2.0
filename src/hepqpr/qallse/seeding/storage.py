@@ -22,14 +22,7 @@ class DoubletStorage:
     """
 
     def __init__(self):
-        self.nO = 0
-        self.nI = 0
-        self.nItems = 0
-        self.spmIdx = []
-        self.innerStart = []
-        self.outerStart = []
-        self.inner = []
-        self.outer = []
+	    self.doublets = []
 
 
 class SpacepointLayerRange:
@@ -65,6 +58,8 @@ class SpacepointStorage:
         self.x = np.zeros(spacepoints.shape[0])
         # Contains the y coordinate of the spacepoints
         self.y = np.zeros(spacepoints.shape[0])
+        # Contains the hit_id of the spacepoints
+        self.hit_id = np.zeros(spacepoints.shape[0])
 
         # id given to a spacepoint, used only for computing efficiency between the standard and modified seeding,
         # it's not necessary for the seeding
@@ -101,6 +96,7 @@ class SpacepointStorage:
             self.y[crtIdx:nextIdx] = df['y'].values
             self.z[crtIdx:nextIdx] = df['z'].values
             self.r[crtIdx:nextIdx] = df['r'].values
+            self.hit_id[crtIdx:nextIdx] = df['hit_id'].values
             self.idsp[crtIdx:nextIdx] = df['hit_id'].values
             self.module_ids[crtIdx:nextIdx] = df['module_id'].values
             crtIdx = nextIdx
