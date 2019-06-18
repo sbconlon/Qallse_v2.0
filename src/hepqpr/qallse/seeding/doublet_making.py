@@ -42,29 +42,72 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 		debug_hit_table(hitTable, spStorage)
 	
 	#Filter functions
-	filter_layers = lambda row: row['layer_id'] > innerHit['layer_id'] - 2 and row['layer_id'] <= innerHit['layer_id'] + 2
+	filter_layers = lambda row: row['layer_id'] in layers
 	filter_phi = lambda row: ((row['phi_id'] - 1) == innerHit['phi_id'] or 
 	                          (row['phi_id'] + 1) == innerHit['phi_id'] or 
 	                           row['phi_id'] == innerHit['phi_id'] or
 	                          (row['phi_id'] == 0 and innerHit['phi_id'] == nPhiSlices - 2) or
 	                          (row['phi_id'] == nPhiSlices - 2 and innerHit['phi_id'] == 0))
 	filter_doublet_length = lambda row: ((row['r'] - innerHit['r']) < constants.maxDoubletLength) & ((row['r'] - innerHit['r']) > constants.minDoubletLength)
-	filter_horizontal_doublets = lambda row: np.abs((row['z'] - innerHit['z'])/(row['r'] - innerHit['r'])) < constants.maxCtg	
+	filter_horizontal_doublets = lambda row: np.abs((row['z'] - innerHit['z'])/(row['r'] - innerHit['r'])) < constants.maxCtg
+	filter_boring_hits = lambda row: row['z'] > minInterest[np.where(layers == row['layer_id'])] and row['z'] < maxInterest[np.where(layers == row['layer_id'])]
+	filter_master = lambda row: filter_layers(row) and filter_phi(row) and filter_doublet_length(row) and filter_horizontal_doublets(row) and filter_boring_hits(row)
+		
+	def get_layer_range():
+		'''
+		This function returns the list of layers that contain interesting hits, given our
+		chosen inner hit. It also returns the min/max bound for interesting hits for each range.
+		'''
+		#Construct layer geometries
+		layers = np.arange(nLayers, dtype='int8')
+		layerGeos = np.array([detModel.layers[i] for i in layers])
+		refCoords = np.array([geo.refCoord for geo in layerGeos])
+
+		#Filter layers that are too far away from the inner hit
+		layers    = layers[np.abs(refCoords - innerHit['r']) < constants.maxDoubletLength]
+		layerGeos = layerGeos[np.abs(refCoords - innerHit['r']) < constants.maxDoubletLength]
+		refCoords = refCoords[np.abs(refCoords - innerHit['r']) < constants.maxDoubletLength]
+
+
+		#Find the bounds of interest for each remaining layer
+		maxInterest = constants.zMinus + refCoords * (innerHit['z'] - constants.zMinus) / innerHit['r']
+		minInterest = constants.zPlus  + refCoords * (innerHit['z'] - constants.zPlus ) / innerHit['r']
+		for idx in range(len(maxInterest)):
+			if minInterest[idx] > maxInterest[idx]:
+				minInterest[idx], maxInterest[idx] = maxInterest[idx], minInterest[idx]
+
+		#Filter layers whose bounds of intrest fall outside their geometric bounds 
+		mask = [(layerGeos[idx].maxBound > minInterest[idx] and layerGeos[idx].minBound < maxInterest[idx]) for idx in range(len(layers))]
+		layers      = layers[mask]
+		minInterest = minInterest[mask]
+		maxInterest = maxInterest[mask]
+
+		return layers, maxInterest, minInterest
 			
 	indxCount = 0
 	for innerHit in hitTable:
 		
-		#Filter hits in layers less than the layer of the innerHit and only allow hits in the same
-		#or to the right of the innerHit's phi slice.
-		outerHitSet = np.array([hit for hit in hitTable[indxCount:] if (filter_layers(hit) and filter_phi(hit))])
+		#Get the layers of interest for our inner hit
+		layers, maxInterest, minInterest = get_layer_range()
 		
-		inR, inZ = innerHit['r'], innerHit['z']
+		'''
+		#Filter hits in uninteresting layers
+		outerHitSet = np.array([hit for hit in hitTable[indxCount:] if filter_layers(hit)])
+		
+		#Filter hits in phi slices that are not in +/- one phi slice of the inner hit
+		outerHitSet = np.array([hit for hit in outerHitSet if filter_phi(hit)])
 		
 		#Filter hits that yeild doublets that are too long or too short
 		outerHitSet = np.array([hit for hit in outerHitSet if filter_doublet_length(hit)])
 		
 		#Filter hits that yeild doublets that are too horizontal
 		outerHitSet = np.array([hit for hit in outerHitSet if filter_horizontal_doublets(hit)])
+		
+		#Filter hits outside of the zone of interest
+		outerHitSet = np.array([hit for hit in outerHitSet if filter_boring_hits(hit)])
+		'''
+		
+		outerHitSet = np.array([hit for hit in hitTable[indxCount:] if filter_master(hit)])
 		
 		for outerHit in outerHitSet:
 			doubletsStorage.inner.append(innerHit['hit_id'])

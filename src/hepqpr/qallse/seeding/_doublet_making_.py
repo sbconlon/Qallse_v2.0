@@ -67,7 +67,7 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
                                     inner.append(spIdx)
                             continue
 
-                        # we are looking at all the layer, so here we ensure the doublet
+                        # we are looking at all the layers, so here we ensure the doublet
                         # is not too long
                         layerGeo = detModel.layers[next_layer]
                         isBarrel = layerGeo.type == 0
