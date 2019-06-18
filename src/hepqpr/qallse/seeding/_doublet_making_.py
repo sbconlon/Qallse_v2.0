@@ -107,8 +107,6 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
                             spHid = spStorage.idsp[spIdx]  # TODO debug
                             spCoord = zsp if isBarrel else rsp
                             if spCoord < minCoord or spCoord > maxCoord:  # if out of boundaries --> next
-                                COUNTER += 1
-                                print('COUNTER: ', COUNTER)
                                 continue
 
                             isPixel2 = spStorage.type[spIdx]

@@ -49,7 +49,7 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 	                          (row['phi_id'] == 0 and innerHit['phi_id'] == nPhiSlices - 2) or
 	                          (row['phi_id'] == nPhiSlices - 2 and innerHit['phi_id'] == 0))
 	filter_doublet_length = lambda row: ((row['r'] - innerHit['r']) < constants.maxDoubletLength) & ((row['r'] - innerHit['r']) > constants.minDoubletLength)
-	filter_horizontal_doublets = lambda row: np.abs((row['z'] - innerHit['z'])/(row['r'] - innerHit['z'])) < constants.maxCtg	
+	filter_horizontal_doublets = lambda row: np.abs((row['z'] - innerHit['z'])/(row['r'] - innerHit['r'])) < constants.maxCtg	
 			
 	indxCount = 0
 	for innerHit in hitTable:
