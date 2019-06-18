@@ -22,7 +22,8 @@ class DoubletStorage:
     """
 
     def __init__(self):
-	    self.doublets = []
+	    self.inner = []
+	    self.outer = []
 
 
 class SpacepointLayerRange:

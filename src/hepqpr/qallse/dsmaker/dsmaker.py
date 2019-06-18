@@ -196,7 +196,7 @@ def create_dataset(
     if gen_doublets:
 
         from hepqpr.qallse.seeding import generate_doublets
-        doublets_df = generate_doublets(hits=new_hits)
+        doublets_df = generate_doublets(truth=new_truth, hits=new_hits)
         with open(output_path + '-doublets.csv', 'w') as f:
             doublets_df.to_csv(f, index=False)
             logger.info(f'Doublets (len={len(doublets_df)}) generated in f{output_path}.')

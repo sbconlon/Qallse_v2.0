@@ -8,26 +8,31 @@ from .doublet_making import doublet_making
 from .storage import *
 from .topology import DetectorModel
 
+from hepqpr.qallse.data_wrapper import *
+
 
 def generate_doublets(*args, **kwargs) -> pd.DataFrame:
     seeding_results = run_seeding(*args, **kwargs)
     doublets = structures_to_doublets(*seeding_results)
-    doublets_df = pd.DataFrame(doublets, columns=['start', 'end']).drop_duplicates()
+    doublets_df = pd.DataFrame(doublets, columns=['start', 'end'])
     return doublets_df
 
 
-def run_seeding(hits_path=None, hits=None, config_cls=HptSeedingConfig):
+def run_seeding(truth_path=None, hits_path=None, truth=None, hits=None, config_cls=HptSeedingConfig):
     det = DetectorModel.buildModel_TrackML()
     n_layers = len(det.layers)
 
+    truth = pd.read_csv(truth_path, index_col=False) if truth is None else truth.copy()
+    truth = truth.iloc[np.where(np.in1d(hits['volume_id'], [8, 13, 17]))] 
     hits = pd.read_csv(hits_path, index_col=False) if hits is None else hits.copy()
     hits = hits.iloc[np.where(np.in1d(hits['volume_id'], [8, 13, 17]))]
 
     config = config_cls(n_layers)
     # setting up structures
+    dataw = DataWrapper(hits, truth)
     spStorage = SpacepointStorage(hits, config)
     doubletsStorage = DoubletStorage()
-    doublet_making(config, spStorage, det, doubletsStorage)
+    doublet_making(config, spStorage, det, doubletsStorage, dataw)
 
     # returning the results
     return hits, spStorage, doubletsStorage
