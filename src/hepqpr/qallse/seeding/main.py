@@ -7,18 +7,11 @@ from .config import *
 from .doublet_making import doublet_making
 from .storage import *
 from .topology import DetectorModel
+from .utils import *
 
 from hepqpr.qallse.data_wrapper import *
 
-
-def generate_doublets(*args, **kwargs) -> pd.DataFrame:
-    seeding_results = run_seeding(*args, **kwargs)
-    doublets = structures_to_doublets(*seeding_results)
-    doublets_df = pd.DataFrame(doublets, columns=['start', 'end'])
-    return doublets_df
-
-
-def run_seeding(truth_path=None, hits_path=None, truth=None, hits=None, config_cls=HptSeedingConfig):
+def generate_doublets(truth=None, hits=None, truth_path=None, hit_path=None, config_cls=HptSeedingConfig) -> pd.DataFrame:
     det = DetectorModel.buildModel_TrackML()
     n_layers = len(det.layers)
 
@@ -28,18 +21,16 @@ def run_seeding(truth_path=None, hits_path=None, truth=None, hits=None, config_c
     hits = hits.iloc[np.where(np.in1d(hits['volume_id'], [8, 13, 17]))]
 
     config = config_cls(n_layers)
-    # setting up structures
     dataw = DataWrapper(hits, truth)
-    spStorage = SpacepointStorage(hits, config)
-    doubletsStorage = DoubletStorage()
-    doublet_making(config, spStorage, det, doubletsStorage, dataw)
-
-    # returning the results
-    return hits, spStorage, doubletsStorage
-
-
-def structures_to_doublets(hits: pd.DataFrame = None, sps: SpacepointStorage = None, ds: DoubletStorage = None):
-    return np.array(ds.doublets)
+    
+    # constructing hit_table
+    hit_table = hits
+    hit_table['phi'] = calc_phi(hit_table['x'], hit_table['y'])
+    hit_table['phi_id'] = scale_phi(hit_table['phi'], config.nPhiSlices)
+    hit_table = hits.drop(columns=['y', 'volume_id', 'module_id', 'phi'])
+    
+	#return the constructed doublets
+    return doublet_making(config, hit_table, det, dataw)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))

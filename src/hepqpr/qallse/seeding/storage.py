@@ -24,6 +24,9 @@ class DoubletStorage:
     def __init__(self):
 	    self.inner = []
 	    self.outer = []
+	    
+    def make_dataframe(self):
+        self.doublets = pd.DataFrame({'inner': self.inner, 'outer': self.outer})
 
 
 class SpacepointLayerRange:
