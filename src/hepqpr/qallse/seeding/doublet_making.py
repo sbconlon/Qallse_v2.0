@@ -76,6 +76,8 @@ def doublet_making(constants, table, detModel, dataw: DataWrapper, z_map, time_e
 	filter_all = filter_layers + plus + filter_phi + plus + filter_doublet_length + plus + filter_horizontal_doublets + plus + filter_boring_hits
 	'''
 	
+	print('Size: ', table.shape[0])
+	
 	inner, outer = [], []
 	for _, inner_hit in table.iterrows():
 		
@@ -98,18 +100,7 @@ def doublet_making(constants, table, detModel, dataw: DataWrapper, z_map, time_e
 		ix = outer_hit_candidates.index.get_level_values('phi_id').isin(phi_range)
 		outer_hit_candidates = outer_hit_candidates[ix]
 		
-		#Filter indexes inside the z range
-		z_filter = []
-		for _, outer_hit in outer_hit_candidates.iterrows():
-			outer_layer_idx = outer_hit.name[0]
-			outer_z_idx = outer_hit.name[2]
-			z_filter.append(outer_z_idx in list(range(z_range[outer_layer_idx][0], z_range[outer_layer_idx][1])))
-		outer_hit_candidates = outer_hit_candidates[z_filter]
 		
-		#Create doublets
-		for _, outer_hit in outer_hit_candidates.iterrows():
-			inner.append(inner_hit['hit_id'])
-			outer.append(outer_hit['hit_id'])
 	
 	
 	doublets = pd.DataFrame({'inner': inner, 'outer': outer})
