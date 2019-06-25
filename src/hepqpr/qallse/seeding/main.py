@@ -24,13 +24,15 @@ def generate_doublets(truth=None, hits=None, truth_path=None, hit_path=None, con
     dataw = DataWrapper(hits, truth)
     
     # constructing hit_table
-    hit_table = hits
+    hit_table = hits[:]
     hit_table['phi'] = calc_phi(hit_table['x'], hit_table['y'])
     hit_table['phi_id'] = scale_phi(hit_table['phi'], config.nPhiSlices)
-    hit_table = hits.drop(columns=['y', 'volume_id', 'module_id', 'phi'])
+    hit_table['z_id'], z_map = scale_z(hit_table['z'], minz= hit_table['z'].min(), maxz= hit_table['z'].max(), nbins= 10000)  #adjust min, max, bin size for optimal run time and precision  
+    hit_table.drop(columns=['y', 'volume_id', 'module_id', 'phi'], inplace=True)
+    hit_table.set_index(['layer_id', 'phi_id', 'z_id'], inplace=True)
     
 	#return the constructed doublets
-    return doublet_making(config, hit_table, det, dataw)
+    return doublet_making(config, hit_table, det, dataw, z_map)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))

@@ -13,7 +13,10 @@ def scale_z(z,minz,maxz,nbins):
     minz = np.abs(minz)
     maxz = np.abs(maxz)
     z = np.add(minz,z)
-    return (z * float(nbins-1) / (minz+maxz)).astype(np.int) 
+    def z_func(x):
+        x = np.add(minz, x)
+        return (x * float(nbins-1) / (minz+maxz)).astype(np.int)
+    return (z * float(nbins-1) / (minz+maxz)).astype(np.int), z_func
 
 def scale_phi(phi, phi_bins):
     """
