@@ -39,7 +39,7 @@ def run_seeding(truth_path=None, hits_path=None, truth=None, hits=None, config_c
 
 
 def structures_to_doublets(hits: pd.DataFrame = None, sps: SpacepointStorage = None, ds: DoubletStorage = None):
-    return np.array(ds.doublets)
+    return pd.DataFrame({'inner': ds.inner, 'outer': ds.outer})
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
