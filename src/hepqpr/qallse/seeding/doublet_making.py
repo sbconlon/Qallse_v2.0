@@ -64,7 +64,7 @@ def doublet_making(constants, table, detModel, dataw: DataWrapper, time_event = 
 	inner, outer = [], []
 	for _, inner_hit in table.iterrows():
 		
-		print(inner_hit['hit_id'])
+		#print(inner_hit['hit_id'])
 		
 		layers, maxInterest, minInterest = get_layer_range()
 		outer_hit_candidates = table[[filter_master(hit) for _, hit in table.iterrows()]]
