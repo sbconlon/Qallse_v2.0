@@ -1,10 +1,10 @@
 {
-    "num_hits": 2802,
+    "num_hits": 2892,
     "num_tracks": 409,
-    "num_important_tracks": 28,
+    "num_important_tracks": 35,
     "num_noise": 651,
-    "random_seed": 560885614,
-    "time": "2019-06-26T10:57:19.339746",
+    "random_seed": 469216832,
+    "time": "2019-07-02T13:25:18.797898",
     "params": {
         "input_path": "/home/atlas/Qallse_v2/Qallse_v2.0/src/hepqpr/qallse/dsmaker/data/event000001000",
         "output_path": ".",
