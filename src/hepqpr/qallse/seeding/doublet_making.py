@@ -74,7 +74,7 @@ def doublet_making(constants, table, detModel, dataw: DataWrapper, time_event = 
 			outer.append(outer_hit['hit_id'])
        
 	
-	doublets = pd.DataFrame({'inner': self.inner, 'outer': self.outer})
+	doublets = pd.DataFrame({'inner': inner, 'outer': outer})
 	doublets.drop_duplicates(keep=False, inplace=True)
 	
 	
