@@ -101,20 +101,13 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 		refCoords = np.array([modelLayers[layer_idx][1] for layer_idx in range(nLayers)], dtype=int64)
 
 		#Get the list of all valid layers
-		layer_range = get_layer_range(inner_hit, refCoords, nLayers, maxDoubletLength)
+		layer_range = get_layer_range(inner_hit, refCoords, nLayers, maxDoubletLength, FALSE_INT)
 
 		#Find the z bounds for each valid layer
-		z_range = get_z_range(inner_hit, refCoords, layer_range, zMinus, zPlus) 
+		z_ranges = get_z_ranges(inner_hit, refCoords, layer_range, zMinus, zPlus, FALSE_INT) 
 
 		#Filter layers whose bounds of interest fall outside their geometric bounds 
-		mask = [(modelLayers[layer_range[idx]][3] > minInterest[idx] and modelLayers[layer_range[idx]][2] < maxInterest[idx]) for idx in range(len(layer_range))]
-		idx_count = 0
-		for bool_idx in mask:
-			if not bool_idx:
-				layer_range[idx_count] = FALSE_INT
-				maxInterest[idx_count] = FALSE_INT
-				minInterest[idx_count] = FALSE_INT
-		idx_count += 1
+		z_mask()
 
 		return layer_range, maxInterest, minInterest
 		
@@ -261,7 +254,7 @@ def filter_boring_hits(outer_layer, outer_z, layer_range, min_z_range, max_z_ran
 	return (outer_z > min_z_range[where(outer_layer, layer_range)] and outer_z > max_z_range[where(outer_layer, layer_range)])
 	
 @jit(nopython=True)
-def get_layer_range(inner_hit, layer_radii, nLayers, maxDoubletLength):
+def get_layer_range(inner_hit, layer_radii, nLayers, maxDoubletLength, FALSE_INT):
 	'''
 	This function, given a inner hit, returns a list of layers that may contain valid outer hits
 	'''
@@ -270,16 +263,43 @@ def get_layer_range(inner_hit, layer_radii, nLayers, maxDoubletLength):
 		if np.abs(layer_radii[layer_id] - inner_hit[3]) < maxDoubletLength:
 			valid_layers.append(layer_id)
 		else:
-			valid_layers.append(99999) #FALSE_INT
+			valid_layers.append(FALSE_INT)
 	return valid_layers
 	
 @jit(nopython=True)
-def get_z_range():
-	maxInterest = zMinus + refCoords * (inner_hit[4] - zMinus) // inner_hit[3]
-	minInterest = zPlus  + refCoords * (inner_hit[4] - zPlus) // inner_hit[3]
-	for idx in range(len(maxInterest)):
-		if minInterest[idx] > maxInterest[idx]:
-			maxInterest[idx], minInterest[idx] = minInterest[idx], maxInterest[idx]
+def get_z_ranges(inner_hit, refCoords, layer_range, zMinus, zPlus, FALSE_INT):
+	'''
+	This function, given an inner hit, calculates the z region of interest for all valid layers in layer_range
+	'''
+	z_min, z_max = [], []
+	for idx in range(len(layer_range)):
+		if layer_range[idx] == FALSE_INT:
+			z_min.append(FALSE_INT)
+			z_max.append(FALSE_INT)
+		else:
+			z_minus = zMinus + refCoords[idx] * (inner_hit[4] - zMinus) // inner_hit[3]
+			z_plus  = zPlus  + refCoords[idx] * (inner_hit[4] - zPlus) // inner_hit[3]
+			z_min.append(min(z_minus, z_plus))
+			z_max.append(max(z_minus, z_plus))
+	return zip(z_min, z_max)
+	
+@jit(nopython=True)
+def z_mask(layer_range, z_ranges, layerModels, FALSE_INT)
+	'''
+	This function sets all layers in layer_range and z_ranges to FALSE_INT if the layer's geometric bounds fall outside
+	the z range for that layer
+	'''
+	
+
+
+[(modelLayers[layer_range[idx]][3] > minInterest[idx] and modelLayers[layer_range[idx]][2] < maxInterest[idx]) for idx in range(len(layer_range))]
+idx_count = 0
+for bool_idx in mask:
+	if not bool_idx:
+		layer_range[idx_count] = FALSE_INT
+		maxInterest[idx_count] = FALSE_INT
+		minInterest[idx_count] = FALSE_INT
+idx_count += 1
 		
 @jit(boolean(int64, int64[:]), nopython=True)
 def contains(val: int64, lst: int64[:]):
