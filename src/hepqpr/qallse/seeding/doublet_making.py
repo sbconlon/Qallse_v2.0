@@ -60,14 +60,14 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 	
 	
 	
-	@guvectorize([(int64[:, :], int64[:], int64[:], int64[:], int64[:], boolean[:])], "(n, m),(m),(l),(l),(o)->(n)", nopython=True)
-	def filter(table, inner_hit, layers, minInterest, maxInterest, mask):
+	@guvectorize([(int64[:, :], int64[:], int64[:], int64[:, :], boolean[:])], "(n, m),(m),(l),(l, o)->(n)", nopython=True)
+	def filter(table, inner_hit, layer_range, z_ranges, mask):
 		'''
 		This function combines the helper filters into one filter and is compiled by numba into a general numpy universal function
 		'''
 		for row_idx in range(table.shape[0]):
 			#filter_layers
-			if not filter_layers(table[row_idx][1], layers):
+			if not filter_layers(table[row_idx][1], layer_range):
 				mask[row_idx] = False
 
 			#filter_phi
@@ -83,7 +83,7 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 				mask[row_idx] = False
 			
 			#filter_boring_hits
-			elif not filter_boring_hits(table[row_idx][1], table[row_idx][4], layers, minInterest, maxInterest):
+			elif not filter_z(table[row_idx][1], table[row_idx][4], layer_range, z_ranges):
 				mask[row_idx] = False
 			
 			else:
@@ -107,9 +107,9 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 		z_ranges = get_z_ranges(inner_hit, refCoords, layer_range, zMinus, zPlus, FALSE_INT) 
 
 		#Filter layers whose bounds of interest fall outside their geometric bounds 
-		z_mask()
+		z_mask(layer_range, z_ranges, modelLayers, FALSE_INT)
 
-		return layer_range, maxInterest, minInterest
+		return layer_range, z_ranges
 		
 		
 		
@@ -126,19 +126,19 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 			# If there are an odd number of rows, then the final iteration should only use one row
 			if indx == (nHits-indx-1):
 				inner_hit = hit_table[indx]
-				layers, maxInterest, minInterest = get_valid_ranges(inner_hit)
-				outerHitSet_one = np.array(filter(hit_table, inner_hit, layers_one, minInterest_one, maxInterest_one))
-				for outerHit in outerHitSet_one:
+				layer_range, z_ranges = get_valid_ranges(inner_hit)
+				outerHitSet = np.array(filter(hit_table, inner_hit, layers_range, z_ranges))
+				for outerHit in outerHitSet:
 					doubletsStorage.inner.append(hit_table[indx][0])
 					doubletsStorage.outer.append(outerHit[0])
 			# Otherwise, two rows should be used
 			else:
 				inner_hit_one = hit_table[indx]
 				inner_hit_two = hit_table[nHits-indx-1]
-				layers_one, maxInterest_one, minInterest_one = get_valid_ranges(inner_hit_one)
-				layers_two, maxInterest_two, minInterest_two = get_valid_ranges(inner_hit_two)
-				outerHitSet_one = hit_table[filter(hit_table, inner_hit_one, layers_one, minInterest_one, maxInterest_two)]
-				outerHitSet_two = hit_table[filter(hit_table, inner_hit_two, layers_two, minInterest_two, maxInterest_two)]
+				layer_range_one, z_ranges_one = get_valid_ranges(inner_hit_one)
+				layer_range_two, z_ranges_two = get_valid_ranges(inner_hit_two)
+				outerHitSet_one = hit_table[filter(hit_table, inner_hit_one, layer_range_one, z_ranges_one)]
+				outerHitSet_two = hit_table[filter(hit_table, inner_hit_two, layer_range_two, z_ranges_two)]
 				for outer_hit_one in outerHitSet_one:
 					doubletsStorage.inner.append(inner_hit_one[0])
 					doubletsStorage.outer.append(outer_hit_one[0])
@@ -204,12 +204,12 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 			outerHit = hit_table[where(miss[1], hit_table.T[0])]
 			print('InnerHit: ', innerHit)
 			print('OuterHit: ', outerHit)
-			layers, minInterest, maxInterest = get_valid_ranges(innerHit)
-			print('filter_layers: ', filter_layers(outerHit[1], layers))
+			layer_range, z_ranges = get_valid_ranges(innerHit)
+			print('filter_layers: ', filter_layers(outerHit[1], layer_range))
 			print('filter_phi: ', filter_phi(outerHit[2], innerHit[2], nPhiSlices))
 			print('filter_doublet_length: ', filter_doublet_length(innerHit[3], outerHit[3], minDoubletLength, maxDoubletLength))
 			print('filter_horizontal_doublets: ', filter_horizontal_doublets(innerHit[3], innerHit[4], outerHit[3], outerHit[4], maxCtg))
-			print('filter_boring_hits: ', filter_boring_hits(outerHit[1], outerHit[4], layers, minInterest, maxInterest, verbose=True))
+			print('filter_z: ', filter_z(outerHit[1], outerHit[4], layer_range, z_ranges, verbose=True))
 			print('-------------------------------------------------')
 			
 	#____________________________________________#
@@ -247,11 +247,11 @@ def filter_horizontal_doublets(inner_r, inner_z, outer_r, outer_z, maxCtg):
 	return np.abs((outer_z - inner_z)/(outer_r - inner_r)) < maxCtg
 		
 @jit(nopython=True)
-def filter_boring_hits(outer_layer, outer_z, layer_range, min_z_range, max_z_range, verbose=False):
+def filter_z(outer_layer, outer_z, layer_range, z_ranges, verbose=False):
 	if verbose:
-		print('Z-Min: ', min_z_range[where(outer_layer, layer_range)], '  Z-Max: ',  max_z_range[where(outer_layer, layer_range)])
+		print('Z-Min: ', z_ranges[outer_layer][0], '  Z-Max: ',  z_ranges[outer_layer][1])
 		print('outer-z: ', outer_z)
-	return (outer_z > min_z_range[where(outer_layer, layer_range)] and outer_z > max_z_range[where(outer_layer, layer_range)])
+	return (outer_z > z_ranges[outer_layer][0] and outer_z < z_ranges[outer_layer][1])
 	
 @jit(nopython=True)
 def get_layer_range(inner_hit, layer_radii, nLayers, maxDoubletLength, FALSE_INT):
@@ -271,37 +271,30 @@ def get_z_ranges(inner_hit, refCoords, layer_range, zMinus, zPlus, FALSE_INT):
 	'''
 	This function, given an inner hit, calculates the z region of interest for all valid layers in layer_range
 	'''
-	z_min, z_max = [], []
+	z_ranges = np.zeros((len(layer_range), 2), dtype=int64)
 	for idx in range(len(layer_range)):
 		if layer_range[idx] == FALSE_INT:
-			z_min.append(FALSE_INT)
-			z_max.append(FALSE_INT)
+			z_ranges[idx][0], z_ranges[idx][1] = FALSE_INT, FALSE_INT
 		else:
 			z_minus = zMinus + refCoords[idx] * (inner_hit[4] - zMinus) // inner_hit[3]
 			z_plus  = zPlus  + refCoords[idx] * (inner_hit[4] - zPlus) // inner_hit[3]
-			z_min.append(min(z_minus, z_plus))
-			z_max.append(max(z_minus, z_plus))
-	return zip(z_min, z_max)
+			z_ranges[idx][0], z_ranges[idx][1] = min(z_minus, z_plus), max(z_minus, z_plus)
+	return z_ranges
 	
 @jit(nopython=True)
-def z_mask(layer_range, z_ranges, layerModels, FALSE_INT)
+def z_mask(layer_range, z_ranges, layerModels, FALSE_INT):
 	'''
-	This function sets all layers in layer_range and z_ranges to FALSE_INT if the layer's geometric bounds fall outside
-	the z range for that layer
+	This function sets the elements in layer_range and z_ranges to FLASE_INT if their corresponding layer geometries
+	are outside the z range
 	'''
-	
-
-
-[(modelLayers[layer_range[idx]][3] > minInterest[idx] and modelLayers[layer_range[idx]][2] < maxInterest[idx]) for idx in range(len(layer_range))]
-idx_count = 0
-for bool_idx in mask:
-	if not bool_idx:
-		layer_range[idx_count] = FALSE_INT
-		maxInterest[idx_count] = FALSE_INT
-		minInterest[idx_count] = FALSE_INT
-idx_count += 1
+	for idx in range(len(layer_range)):
+		if not layer_range[idx] == FALSE_INT:
+			if not (layerModels[layer_range[idx]][3] > z_ranges[idx][0] and layerModels[layer_range[idx]][2] < z_ranges[idx][1]):
+				layer_range[idx] = FALSE_INT
+				z_ranges[idx][0] = FALSE_INT
+				z_ranges[idx][1] = FALSE_INT
 		
-@jit(boolean(int64, int64[:]), nopython=True)
+@jit(nopython=True)
 def contains(val: int64, lst: int64[:]):
 	'''
 	This function is the numba friendly implementation of the contains built in funtion in python
@@ -322,6 +315,27 @@ def where(val, lst):
 			return index
 		index += 1
 	return index #will cause out of range error
+	
+@jit(nopython=True)
+def zip(x, y):
+	'''
+	This function is the numba friendly implementation of the zip function in python 
+	'''
+	zipped = np.array([])
+	for idx in range(len(x)):
+		zipped = append(zipped, np.array([x[idx], y[idx]]))
+	return zipped
+	
+@jit(nopython=True)
+def append(arr, val):
+	'''
+	This function is the numba friendly implementation of the append function in numpy
+	'''
+	new_arr = np.zeros(len(arr) + 1)
+	for idx in len(arr):
+		new_arr[idx] = arr[idx]
+	new_arr[idx+1] = val
+	return new_arr
 
 def debug_hit_table(table, storage):
 	'''
