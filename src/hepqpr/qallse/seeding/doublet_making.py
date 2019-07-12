@@ -205,7 +205,7 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 			print('InnerHit: ', innerHit)
 			print('OuterHit: ', outerHit)
 			layer_range, z_ranges = get_valid_ranges(innerHit)
-			print('filter_layers: ', filter_layers(outerHit[1], layer_range))
+			print('filter_layers: ', filter_layers(outerHit[1], layer_range, verbose=True))
 			print('filter_phi: ', filter_phi(outerHit[2], innerHit[2], nPhiSlices))
 			print('filter_doublet_length: ', filter_doublet_length(innerHit[3], outerHit[3], minDoubletLength, maxDoubletLength))
 			print('filter_horizontal_doublets: ', filter_horizontal_doublets(innerHit[3], innerHit[4], outerHit[3], outerHit[4], maxCtg))
@@ -227,7 +227,10 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 #____________________________________________#
 
 @jit(nopython=True)
-def filter_layers(layer_id, layer_range):
+def filter_layers(layer_id, layer_range, verbose=False):
+	if verbose == True:
+		if not contains(layer_id, layer_range):
+			print(layer_id, ' is not in ', layer_range)
 	return contains(layer_id, layer_range)
 		
 @jit(nopython=True)
@@ -260,7 +263,8 @@ def get_layer_range(inner_hit, layer_radii, nLayers, maxDoubletLength, FALSE_INT
 	'''
 	valid_layers = []
 	for layer_id in range(nLayers):
-		if np.abs(layer_radii[layer_id] - inner_hit[3]) < maxDoubletLength:
+		if (layer_id == inner_hit[1]+1 or layer_id == inner_hit[1]+2 or
+		    layer_id == inner_hit[1]-1 or layer_id == inner_hit[1]-2):
 			valid_layers.append(layer_id)
 		else:
 			valid_layers.append(FALSE_INT)
