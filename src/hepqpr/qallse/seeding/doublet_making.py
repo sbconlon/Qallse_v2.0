@@ -196,7 +196,8 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 		doublets = pd.DataFrame({'inner': doubletsStorage.inner, 'outer': doubletsStorage.outer})
 		print('--Grading Doublets--')
 		p, r, ms = dataw.compute_score(doublets)
-		print(f'Purity: {p * 100}% real doublets')
+		print(f'Precision: {p}')
+		print(f'Recall: {r}')
 		print(f'Missing the following {len(ms)} doublets:')
 		for miss in ms:
 			print('-------------------------------------------------')
@@ -205,11 +206,11 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 			print('InnerHit: ', innerHit)
 			print('OuterHit: ', outerHit)
 			layer_range, z_ranges = get_valid_ranges(innerHit)
-			print('filter_layers: ', filter_layers(outerHit[1], layer_range, verbose=True))
+			print('filter_layers: ', filter_layers(outerHit[1], layer_range))
 			print('filter_phi: ', filter_phi(outerHit[2], innerHit[2], nPhiSlices))
 			print('filter_doublet_length: ', filter_doublet_length(innerHit[3], outerHit[3], minDoubletLength, maxDoubletLength))
 			print('filter_horizontal_doublets: ', filter_horizontal_doublets(innerHit[3], innerHit[4], outerHit[3], outerHit[4], maxCtg))
-			print('filter_z: ', filter_z(outerHit[1], outerHit[4], layer_range, z_ranges, verbose=True))
+			print('filter_z: ', filter_z(outerHit[1], outerHit[4], layer_range, z_ranges))
 			print('-------------------------------------------------')
 			
 	#____________________________________________#
@@ -228,9 +229,6 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 
 @jit(nopython=True)
 def filter_layers(layer_id, layer_range, verbose=False):
-	if verbose == True:
-		if not contains(layer_id, layer_range):
-			print(layer_id, ' is not in ', layer_range)
 	return contains(layer_id, layer_range)
 		
 @jit(nopython=True)
@@ -250,10 +248,7 @@ def filter_horizontal_doublets(inner_r, inner_z, outer_r, outer_z, maxCtg):
 	return np.abs((outer_z - inner_z)/(outer_r - inner_r)) < maxCtg
 		
 @jit(nopython=True)
-def filter_z(outer_layer, outer_z, layer_range, z_ranges, verbose=False):
-	if verbose:
-		print('Z-Min: ', z_ranges[outer_layer][0], '  Z-Max: ',  z_ranges[outer_layer][1])
-		print('outer-z: ', outer_z)
+def filter_z(outer_layer, outer_z, layer_range, z_ranges):
 	return (outer_z > z_ranges[outer_layer][0] and outer_z < z_ranges[outer_layer][1])
 	
 @jit(nopython=True)
