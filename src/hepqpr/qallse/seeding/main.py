@@ -9,14 +9,18 @@ from .storage import *
 from .topology import DetectorModel
 
 
-def generate_doublets(*args, **kwargs) -> pd.DataFrame:
+def generate_doublets(*args, **kwargs):
     seeding_results = run_seeding(*args, **kwargs)
     doublets = structures_to_doublets(*seeding_results)
+
+    if 'test_mode' in kwargs and kwargs['test_mode']:
+        return pd.DataFrame(doublets[0], columns=['start', 'end']).drop_duplicates(), doublets[1]
+
     doublets_df = pd.DataFrame(doublets, columns=['start', 'end']).drop_duplicates()
     return doublets_df
 
 
-def run_seeding(hits_path=None, hits=None, config_cls=HptSeedingConfig):
+def run_seeding(hits_path=None, hits=None, config_cls=HptSeedingConfig, test_mode=False):
     det = DetectorModel.buildModel_TrackML()
     n_layers = len(det.layers)
 
@@ -27,13 +31,16 @@ def run_seeding(hits_path=None, hits=None, config_cls=HptSeedingConfig):
     # setting up structures
     spStorage = SpacepointStorage(hits, config)
     doubletsStorage = DoubletStorage()
-    doublet_making(config, spStorage, det, doubletsStorage)
+    
+    if test_mode:
+        runtime = doublet_making(config, spStorage, det, doubletsStorage, test_mode=True)
+        return hits, spStorage, doubletsStorage, runtime
 
     # returning the results
     return hits, spStorage, doubletsStorage
 
 
-def structures_to_doublets(hits: pd.DataFrame = None, sps: SpacepointStorage = None, ds: DoubletStorage = None):
+def structures_to_doublets(hits: pd.DataFrame = None, sps: SpacepointStorage = None, ds: DoubletStorage = None, runtime=0):
     doublets = []
     for i, sp in enumerate(ds.spmIdx):
         inner_indexes = ds.inner[ds.innerStart[i]:ds.innerStart[i + 1 if i + 1 < len(ds.spmIdx) else -1]]
@@ -41,7 +48,7 @@ def structures_to_doublets(hits: pd.DataFrame = None, sps: SpacepointStorage = N
         outer_indexes = ds.outer[ds.outerStart[i]:ds.outerStart[i + 1 if i + 1 < len(ds.spmIdx) else -1]]
         doublets += [(sps.idsp[sp], sps.idsp[i]) for i in outer_indexes]
 
-    return np.unique(np.array(doublets), axis=0)
+    return np.unique(np.array(doublets), axis=0), runtime
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))

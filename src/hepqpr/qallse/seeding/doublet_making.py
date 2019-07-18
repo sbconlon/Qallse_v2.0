@@ -1,11 +1,18 @@
 import numpy as np
 from .storage import *
+from time import clock
 
 
-def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsStorage: DoubletStorage):
+def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsStorage: DoubletStorage, test_mode=False):
     """
     Implementation of the DoubletCountingKernelCuda.cuh
     """
+    
+    debug, time_event = False, True
+    
+    if time_event:
+        start = clock()
+    
     for sliceIdx in range(constants.nPhiSlices):  # iterate for each phi slice
         for layerIdx in range(constants.nLayers):  # iterate for each layer
             slr: SpacepointLayerRange = spStorage.phiSlices[sliceIdx]
@@ -142,3 +149,10 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
                     doubletsStorage.outerStart.append(len(doubletsStorage.outer))
                     doubletsStorage.outer += outer
                     doubletsStorage.nO += nOuter
+    
+    if time_event:
+        runtime = clock() - start
+        if test_mode:
+            print('here')
+            return runtime
+                    
