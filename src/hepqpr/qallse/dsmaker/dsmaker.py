@@ -69,13 +69,14 @@ def create_dataset(
         high_pt_cut=1.,
         double_hits_ok=False,
         gen_doublets=False,
-        prefix=None, random_seed=None, phi_bounds=None) -> Tuple[Dict, str]:
+        prefix=None, random_seed=None, phi_bounds=None,
+        test_mode=False):
     input_path = input_path.replace('-hits.csv', '')  # just in case
 
     # capture all parameters, so we can dump them to a file later
     input_params = locals()
 
-    # initialise random
+    # initialize random
     if random_seed is None:
         random_seed = random.randint(0, 1<<30)
     random.seed(random_seed)
@@ -107,18 +108,21 @@ def create_dataset(
     # create a merged dataset with hits and truth
     df = hits.join(truth, rsuffix='_', how='inner')
 
-    logger.debug(f'Loaded {len(df)} hits from {input_path}.')
+    if not test_mode:
+	    logger.debug(f'Loaded {len(df)} hits from {input_path}.')
 
     # ---------- filter hits
 
     # keep only hits in the barrel region
     df = df[hits.volume_id.isin(BARREL_VOLUME_IDS)]
-    logger.debug(f'Filtered hits from barrel. Remaining hits: {len(df)}.')
+    if not test_mode:
+	    logger.debug(f'Filtered hits from barrel. Remaining hits: {len(df)}.')
 
     if phi_bounds is not None:
         df['phi'] = np.arctan2(df.y, df.x)
         df = df[(df.phi >= phi_bounds[0]) & (df.phi <= phi_bounds[1])]
-        logger.debug(f'Filtered using phi bounds {phi_bounds}. Remaining hits: {len(df)}.')
+        if not test_mode:
+            logger.debug(f'Filtered using phi bounds {phi_bounds}. Remaining hits: {len(df)}.')
 
     # store the noise for later, then remove them from the main dataframe
     # do this before filtering double hits, as noise will be thrown away as duplicates
@@ -127,7 +131,8 @@ def create_dataset(
 
     if not double_hits_ok:
         df.drop_duplicates(['particle_id', 'volume_id', 'layer_id'], keep='first', inplace=True)
-        logger.debug(f'Dropped double hits. Remaining hits: {len(df) + len(noise_df)}.')
+        if not test_mode:
+            logger.debug(f'Dropped double hits. Remaining hits: {len(df) + len(noise_df)}.')
 
     # ---------- sample tracks
 
@@ -154,7 +159,8 @@ def create_dataset(
         # set low pt weights to 0
         hpt_mask = np.sqrt(truth.tpx ** 2 + truth.tpy ** 2) >= high_pt_cut
         new_truth.loc[~hpt_mask, 'weight'] = 0
-        logger.debug(f'High Pt hits: {sum(hpt_mask)}/{len(new_truth)}')
+        if not test_mode:
+            logger.debug(f'High Pt hits: {sum(hpt_mask)}/{len(new_truth)}')
 
     if min_hits_per_track > 0:
         short_tracks = new_truth.groupby('particle_id').filter(lambda g: len(g) < min_hits_per_track)
@@ -163,45 +169,50 @@ def create_dataset(
     new_truth.weight = new_truth.weight / new_truth.weight.sum()
 
     # ---------- write data
+    if not test_mode:
+        # write the dataset to disk
+        output_path = os.path.join(output_path, prefix)
+        os.makedirs(output_path, exist_ok=True)
+        output_path = os.path.join(output_path, event_id)
 
-    # write the dataset to disk
-    output_path = os.path.join(output_path, prefix)
-    os.makedirs(output_path, exist_ok=True)
-    output_path = os.path.join(output_path, event_id)
-
-    new_hits.to_csv(output_path + '-hits.csv', index=False)
-    new_truth.to_csv(output_path + '-truth.csv', index=False)
-    new_particles.to_csv(output_path + '-particles.csv', index=False)
+        new_hits.to_csv(output_path + '-hits.csv', index=False)
+        new_truth.to_csv(output_path + '-truth.csv', index=False)
+        new_particles.to_csv(output_path + '-particles.csv', index=False)
 
     # ---------- write metadata
+    if not test_mode:
+        metadata = dict(
+            num_hits=new_hits.shape[0],
+            num_tracks=num_tracks,
+            num_important_tracks=new_truth[new_truth.weight != 0].particle_id.nunique(),
+            num_noise=num_noise,
+            random_seed=random_seed,
+            time=datetime.now().isoformat(),
+        )
+        for k, v in metadata.items():
+            logger.debug(f'  {k}={v}')
 
-    metadata = dict(
-        num_hits=new_hits.shape[0],
-        num_tracks=num_tracks,
-        num_important_tracks=new_truth[new_truth.weight != 0].particle_id.nunique(),
-        num_noise=num_noise,
-        random_seed=random_seed,
-        time=datetime.now().isoformat(),
-    )
-    for k, v in metadata.items():
-        logger.debug(f'  {k}={v}')
+        metadata['params'] = input_params
 
-    metadata['params'] = input_params
-
-    with open(output_path + '-meta.json', 'w') as f:
-        json.dump(metadata, f, indent=4)
+        with open(output_path + '-meta.json', 'w') as f:
+            json.dump(metadata, f, indent=4)
 
     # ------------ gen doublets
 
     if gen_doublets:
-
         from hepqpr.qallse.seeding import generate_doublets
-        doublets_df = generate_doublets(truth=new_truth, hits=new_hits)
-        with open(output_path + '-doublets.csv', 'w') as f:
-            doublets_df.to_csv(f, index=False)
-            logger.info(f'Doublets (len={len(doublets_df)}) generated in f{output_path}.')
+        if test_mode:
+            dsmaker_result = generate_doublets(truth=new_truth, hits=new_hits, test_mode=True)
+            dsmaker_result.append(random_seed)
+            return dsmaker_result
+        else:
+            with open(output_path + '-doublets.csv', 'w') as f:
+                doublets_df = generate_doublets(truth=new_truth, hits=new_hits)
+                doublets_df.to_csv(f, index=False)
+                logger.info(f'Doublets (len={len(doublets_df)}) generated in f{output_path}.')
+                return metadata, output_path
 
-    return metadata, output_path
+    
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))

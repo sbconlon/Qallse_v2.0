@@ -7,7 +7,7 @@ from time import clock
 from numba import jit, guvectorize
 from numba import int64, float32, boolean
 
-def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsStorage: DoubletStorage, dataw: DataWrapper):
+def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsStorage: DoubletStorage, dataw: DataWrapper, test_mode=False):
 	
 	#____________________________________________#
 	#                                            #
@@ -26,9 +26,6 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 	zMinus = constants.zMinus
 	maxCtg = constants.maxCtg
 	FALSE_INT = 99999    #Integer that reperesents a false value
-	
-	
-	
 	
 	
 	
@@ -146,7 +143,8 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 					doubletsStorage.inner.append(inner_hit_two[0])
 					doubletsStorage.outer.append(outer_hit_two[0])
 				
-		print(f'---> {len(doubletsStorage.inner)} Doublets Created')
+		if debug:
+			print(f'---> {len(doubletsStorage.inner)} Doublets Created')
 			
 	#____________________________________________#
 	#                                            #
@@ -175,8 +173,9 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 	make()
 				
 	if time_event:
-		end = clock() - start
-		print(f'RUNTIME: .../seeding/doublet_making.py  - {end} sec')
+		runtime = clock() - start
+		if debug:
+			print(f'RUNTIME: .../seeding/doublet_making.py  - {runtime} sec')
 		
 	#____________________________________________#
 	#                                            #
@@ -212,6 +211,13 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 			print('filter_horizontal_doublets: ', filter_horizontal_doublets(innerHit[3], innerHit[4], outerHit[3], outerHit[4], maxCtg))
 			print('filter_z: ', filter_z(outerHit[1], outerHit[4], layer_range, z_ranges))
 			print('-------------------------------------------------')
+	
+	if test_mode:
+		doublets = pd.DataFrame({'inner': doubletsStorage.inner, 'outer': doubletsStorage.outer})
+		p, r, ms = dataw.compute_score(doublets)
+		doublet_making_result = [round(runtime, 2), round(r, 2), round(p, 2), len(doubletsStorage.inner)]
+		print('doublet_making_result: ', doublet_making_result)
+		return doublet_making_result
 			
 	#____________________________________________#
 	#                                            #
