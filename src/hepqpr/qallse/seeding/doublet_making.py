@@ -153,6 +153,5 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
     if time_event:
         runtime = clock() - start
         if test_mode:
-            print('here')
             return runtime
                     
