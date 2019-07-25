@@ -2,7 +2,7 @@ import numpy as np
 from .storage import *
 
 from hepqpr.qallse.data_wrapper import * 
-from time import clock
+from time import process_time
 
 from numba import jit, guvectorize
 from numba import int64, float32, boolean
@@ -57,35 +57,17 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 	
 	
 	
-	@guvectorize([(int64[:, :], int64[:], int64[:], int64[:, :], boolean[:])], "(n, m),(m),(l),(l, o)->(n)", nopython=True)
-	def filter(table, inner_hit, layer_range, z_ranges, mask):
+	@guvectorize([(int64[:, :], int64[:], int64[:], int64[:, :], boolean[:])], "(n, m),(m),(l),(l, o)->(n)", nopython=True
+	def filter(table, inner_hit, layer_range, z_ranges, keep):
 		'''
-		This function combines the helper filters into one filter and is compiled by numba into a general numpy universal function
+		This function combines the helper filters into one filter and is compiled by numba
 		'''
 		for row_idx in range(table.shape[0]):
-			#filter_layers
-			if not filter_layers(table[row_idx][1], layer_range):
-				mask[row_idx] = False
-
-			#filter_phi
-			elif not filter_phi(inner_hit[2], table[row_idx][2], nPhiSlices):
-				mask[row_idx] = False
-				
-			#filter_doublet_length
-			elif not filter_doublet_length(inner_hit[3], table[row_idx][3], minDoubletLength, maxDoubletLength):
-				mask[row_idx] = False
-				
-			#filter_horizontal_doublets
-			elif not filter_horizontal_doublets(inner_hit[3], inner_hit[4], table[row_idx][3], table[row_idx][4], maxCtg):
-				mask[row_idx] = False
-			
-			#filter_boring_hits
-			elif not filter_z(table[row_idx][1], table[row_idx][4], layer_range, z_ranges):
-				mask[row_idx] = False
-			
-			else:
-				mask[row_idx] = True
-
+			keep[row_idx] = (filter_layers(table[row_idx][1], layer_range) and 
+			                 filter_phi(inner_hit[2], table[row_idx][2], nPhiSlices) and 
+			                 filter_doublet_length(inner_hit[3], table[row_idx][3], minDoubletLength, maxDoubletLength) and 
+			                 filter_horizontal_doublets(inner_hit[3], inner_hit[4], table[row_idx][3], table[row_idx][4], maxCtg) and 
+			                 filter_z(table[row_idx][1], table[row_idx][4], layer_range, z_ranges))
 
 
 	@jit(nopython=True)
@@ -107,7 +89,6 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 		z_mask(layer_range, z_ranges, modelLayers, FALSE_INT)
 
 		return layer_range, z_ranges
-		
 		
 		
 	def make():
@@ -168,12 +149,12 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 		debug_hit_table(hit_table, spStorage)
 		
 	if time_event:
-		start = clock()
+		start = process_time()
 	
 	make()
 				
 	if time_event:
-		runtime = clock() - start
+		runtime = process_time() - start
 		if debug:
 			print(f'RUNTIME: .../seeding/doublet_making.py  - {runtime} sec')
 		
