@@ -14,7 +14,7 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 	#------------- Define Constants -------------#
 	#____________________________________________#
 	
-	time_event, debug = True, True
+	time_event, debug = True, False
 	nHits = spStorage.x.size
 	nPhiSlices = len(spStorage.phiSlices)
 	nLayers = len(spStorage.phiSlices[0].layerBegin)
@@ -216,7 +216,6 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 		doublets = pd.DataFrame({'inner': doubletsStorage.inner, 'outer': doubletsStorage.outer})
 		p, r, ms = dataw.compute_score(doublets)
 		doublet_making_result = [round(runtime, 2), round(r, 2), round(p, 2), len(doubletsStorage.inner)]
-		print('doublet_making_result: ', doublet_making_result)
 		return doublet_making_result
 			
 	#____________________________________________#
