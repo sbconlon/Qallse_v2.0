@@ -2,9 +2,9 @@ import numpy as np
 from .storage import *
 
 from hepqpr.qallse.data_wrapper import * 
-from time import clock
+from time import process_time
 
-from numba import jit, guvectorize
+from numba import jit, guvectorize, prange
 from numba import int64, float32, boolean
 
 def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsStorage: DoubletStorage, dataw: DataWrapper, test_mode=False):
@@ -57,34 +57,20 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 	
 	
 	
-	@guvectorize([(int64[:, :], int64[:], int64[:], int64[:, :], boolean[:])], "(n, m),(m),(l),(l, o)->(n)", nopython=True)
-	def filter(table, inner_hit, layer_range, z_ranges, mask):
+	#@guvectorize([(int64[:, :], int64[:], int64[:], int64[:, :], boolean[:])], "(n, m),(m),(l),(l, o)->(n)", nopython=True)
+	@jit(nopython=True)
+	def filter(table, inner_hit, layer_range, z_ranges):
 		'''
 		This function combines the helper filters into one filter and is compiled by numba into a general numpy universal function
 		'''
+		keep = np.array([True] * table.shape[0])
 		for row_idx in range(table.shape[0]):
-			#filter_layers
-			if not filter_layers(table[row_idx][1], layer_range):
-				mask[row_idx] = False
-
-			#filter_phi
-			elif not filter_phi(inner_hit[2], table[row_idx][2], nPhiSlices):
-				mask[row_idx] = False
-				
-			#filter_doublet_length
-			elif not filter_doublet_length(inner_hit[3], table[row_idx][3], minDoubletLength, maxDoubletLength):
-				mask[row_idx] = False
-				
-			#filter_horizontal_doublets
-			elif not filter_horizontal_doublets(inner_hit[3], inner_hit[4], table[row_idx][3], table[row_idx][4], maxCtg):
-				mask[row_idx] = False
-			
-			#filter_boring_hits
-			elif not filter_z(table[row_idx][1], table[row_idx][4], layer_range, z_ranges):
-				mask[row_idx] = False
-			
-			else:
-				mask[row_idx] = True
+			keep[row_idx] = (filter_layers(table[row_idx][1], layer_range) and
+		                     filter_phi(inner_hit[2], table[row_idx][2], nPhiSlices) and
+		                     filter_doublet_length(inner_hit[3], table[row_idx][3], minDoubletLength, maxDoubletLength) and
+		                     filter_horizontal_doublets(inner_hit[3], inner_hit[4], table[row_idx][3], table[row_idx][4], maxCtg) and
+		                     filter_z(table[row_idx][1], table[row_idx][4], layer_range, z_ranges))
+		return keep
 
 
 
@@ -109,42 +95,28 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 		return layer_range, z_ranges
 		
 		
-		
-	def make():
+	@jit(nopython=True, parallel=True)
+	def make(approximate_num_doublets=5000000):
 		'''
 		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates
 		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the 
 		computation time for each loop.
 		'''
-		for indx in range(nHits//2):
-			# If there are an even number of rows, the final iteration should be ignored
-			if indx > (nHits-indx-1):
-				continue
-			# If there are an odd number of rows, then the final iteration should only use one row
-			if indx == (nHits-indx-1):
-				inner_hit = hit_table[indx]
-				layer_range, z_ranges = get_valid_ranges(inner_hit)
-				outerHitSet = np.array(filter(hit_table, inner_hit, layers_range, z_ranges))
-				for outerHit in outerHitSet:
-					doubletsStorage.inner.append(hit_table[indx][0])
-					doubletsStorage.outer.append(outerHit[0])
-			# Otherwise, two rows should be used
-			else:
-				inner_hit_one = hit_table[indx]
-				inner_hit_two = hit_table[nHits-indx-1]
-				layer_range_one, z_ranges_one = get_valid_ranges(inner_hit_one)
-				layer_range_two, z_ranges_two = get_valid_ranges(inner_hit_two)
-				outerHitSet_one = hit_table[filter(hit_table, inner_hit_one, layer_range_one, z_ranges_one)]
-				outerHitSet_two = hit_table[filter(hit_table, inner_hit_two, layer_range_two, z_ranges_two)]
-				for outer_hit_one in outerHitSet_one:
-					doubletsStorage.inner.append(inner_hit_one[0])
-					doubletsStorage.outer.append(outer_hit_one[0])
-				for outer_hit_two in outerHitSet_two:
-					doubletsStorage.inner.append(inner_hit_two[0])
-					doubletsStorage.outer.append(outer_hit_two[0])
-				
+		inner, outer = np.zeros(approximate_num_doublets, dtype=int64), np.zeros(approximate_num_doublets, dtype=int64)
+		doublet_idx = 0
+		for indx in prange(nHits):
+			inner_hit = hit_table[indx]
+			layer_range, z_ranges = get_valid_ranges(inner_hit)
+			outerHitSet = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)]
+			for outer_hit_indx in prange(len(outerHitSet.T[0])):
+				inner[doublet_idx] = inner_hit[0]
+				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]
+				doublet_idx += 1
+			
 		if debug:
-			print(f'---> {len(doubletsStorage.inner)} Doublets Created')
+			print('---> ', len(inner), ' Doublets Created')
+			
+		return inner, outer
 			
 	#____________________________________________#
 	#                                            #
@@ -168,12 +140,14 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 		debug_hit_table(hit_table, spStorage)
 		
 	if time_event:
-		start = clock()
+		start = process_time()
 	
-	make()
+	doubletsStorage.inner, doubletsStorage.outer = make()
+	
+	#make.parallel_diagnostics()
 				
 	if time_event:
-		runtime = clock() - start
+		runtime = process_time() - start
 		if debug:
 			print(f'RUNTIME: .../seeding/doublet_making.py  - {runtime} sec')
 		
@@ -193,6 +167,7 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 	
 	if debug:
 		doublets = pd.DataFrame({'inner': doubletsStorage.inner, 'outer': doubletsStorage.outer})
+		doublets.drop_duplicates(inplace=True, keep=False)
 		print('--Grading Doublets--')
 		p, r, ms = dataw.compute_score(doublets)
 		print(f'Precision: {p}')
@@ -214,6 +189,7 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 	
 	if test_mode:
 		doublets = pd.DataFrame({'inner': doubletsStorage.inner, 'outer': doubletsStorage.outer})
+		doublets.drop_duplicates(inplace=True, keep=False)
 		p, r, ms = dataw.compute_score(doublets)
 		doublet_making_result = [round(runtime, 2), round(r, 2), round(p, 2), len(doubletsStorage.inner)]
 		return doublet_making_result
@@ -335,8 +311,8 @@ def append(arr, val):
 	'''
 	This function is the numba friendly implementation of the append function in numpy
 	'''
-	new_arr = np.zeros(len(arr) + 1)
-	for idx in len(arr):
+	new_arr = np.zeros(len(arr) + 1, dtype=int64)
+	for idx in range(len(arr)):
 		new_arr[idx] = arr[idx]
 	new_arr[idx+1] = val
 	return new_arr
