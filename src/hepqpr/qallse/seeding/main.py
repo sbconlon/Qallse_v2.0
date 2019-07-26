@@ -12,13 +12,15 @@ from hepqpr.qallse.data_wrapper import *
 
 
 def generate_doublets(*args, **kwargs) -> pd.DataFrame:
+    if 'test_mode' in kwargs and kwargs['test_mode']:
+        return run_seeding(*args, **kwargs)
     seeding_results = run_seeding(*args, **kwargs)
     doublets = structures_to_doublets(*seeding_results)
     doublets_df = pd.DataFrame(doublets, columns=['start', 'end'])
     return doublets_df
 
 
-def run_seeding(truth_path=None, hits_path=None, truth=None, hits=None, config_cls=HptSeedingConfig):
+def run_seeding(truth_path=None, hits_path=None, truth=None, hits=None, config_cls=HptSeedingConfig, test_mode=False):
     det = DetectorModel.buildModel_TrackML()
     n_layers = len(det.layers)
 
@@ -32,6 +34,9 @@ def run_seeding(truth_path=None, hits_path=None, truth=None, hits=None, config_c
     dataw = DataWrapper(hits, truth)
     spStorage = SpacepointStorage(hits, config)
     doubletsStorage = DoubletStorage()
+    if test_mode:
+        return doublet_making(config, spStorage, det, doubletsStorage, dataw, test_mode=True)
+        
     doublet_making(config, spStorage, det, doubletsStorage, dataw)
 
     # returning the results

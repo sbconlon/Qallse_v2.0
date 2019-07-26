@@ -2,11 +2,12 @@ import numpy as np
 from .storage import *
 
 from hepqpr.qallse.data_wrapper import * 
-from time import clock
+from time import time
 
 
-def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsStorage: DoubletStorage, dataw: DataWrapper, time_event = True, debug = True):
+def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsStorage: DoubletStorage, dataw: DataWrapper, test_mode=False):
 	
+	time_event, debug = True, False
 	nHits = spStorage.x.size
 	nPhiSlices = len(spStorage.phiSlices)
 	nLayers = len(spStorage.phiSlices[0].layerBegin)
@@ -36,7 +37,7 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 	hitTable.setflags(write=False)         #make hitTable immutable
 	
 	if time_event:
-		start = clock()
+		start = time()
 	
 	if debug:
 		debug_hit_table(hitTable, spStorage)
@@ -116,8 +117,13 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 		indxCount += 1
        
 	if time_event:
-		end = clock() - start
-		print(f'RUNTIME: .../seeding/doublet_making.py  - {end} sec')
+		runtime = time() - start
+		if debug:
+			print(f'RUNTIME: .../seeding/doublet_making.py  - {runtime} sec')
+		if test_mode:
+			doublets = pd.DataFrame({'inner': doubletsStorage.inner, 'outer': doubletsStorage.outer})
+			p, r, _ = dataw.compute_score(doublets)
+			return [runtime, round(r, 2), round(p, 2), len(doubletsStorage.inner)]
 		
 	if debug:
 		doublets = pd.DataFrame({'inner': doubletsStorage.inner, 'outer': doubletsStorage.outer})
