@@ -2,7 +2,7 @@ import numpy as np
 from .storage import *
 
 from hepqpr.qallse.data_wrapper import * 
-from time import process_time
+from time import time
 
 from numba import jit, guvectorize
 from numba import int64, float32, boolean
@@ -57,7 +57,7 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 	
 	
 	
-	@guvectorize([(int64[:, :], int64[:], int64[:], int64[:, :], boolean[:])], "(n, m),(m),(l),(l, o)->(n)", nopython=True
+	@guvectorize([(int64[:, :], int64[:], int64[:], int64[:, :], boolean[:])], "(n, m),(m),(l),(l, o)->(n)", nopython=True)
 	def filter(table, inner_hit, layer_range, z_ranges, keep):
 		'''
 		This function combines the helper filters into one filter and is compiled by numba
@@ -149,12 +149,12 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 		debug_hit_table(hit_table, spStorage)
 		
 	if time_event:
-		start = process_time()
+		start = time()
 	
 	make()
 				
 	if time_event:
-		runtime = process_time() - start
+		runtime = time() - start
 		if debug:
 			print(f'RUNTIME: .../seeding/doublet_making.py  - {runtime} sec')
 		
