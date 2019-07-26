@@ -1,6 +1,6 @@
 import numpy as np
 from .storage import *
-from time import clock
+from time import time
 
 
 def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsStorage: DoubletStorage, test_mode=False):
@@ -11,7 +11,7 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
     debug, time_event = False, True
     
     if time_event:
-        start = clock()
+        start = time()
     
     for sliceIdx in range(constants.nPhiSlices):  # iterate for each phi slice
         for layerIdx in range(constants.nLayers):  # iterate for each layer
@@ -151,7 +151,7 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
                     doubletsStorage.nO += nOuter
     
     if time_event:
-        runtime = clock() - start
+        runtime = time() - start
         if test_mode:
-            return runtime
+            return round(runtime, 2)
                     
