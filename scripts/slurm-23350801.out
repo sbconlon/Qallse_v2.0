@@ -1,0 +1,1062 @@
+--> Testing doublet_making with 0.05 density
+ 
+================================================================================
+ Parallel Accelerator Optimizing:  Function doublet_making.<locals>.make, 
+/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-
+packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py 
+(98)  
+================================================================================
+
+
+Parallel loop listing for  Function doublet_making.<locals>.make, /global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py (98) 
+--------------------------------------------------------------------------------------------------------------------------------------|loop #ID
+	@jit(nopython=True, parallel=True)                                                                                                   | 
+	def make(approximate_num_doublets=5000000):                                                                                          | 
+		'''                                                                                                                                 | 
+		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates       | 
+		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the        | 
+		computation time for each loop.                                                                                                     | 
+		'''                                                                                                                                 | 
+		inner, outer = np.zeros(approximate_num_doublets, dtype=int64), np.zeros(approximate_num_doublets, dtype=int64)---------------------| #0, 1
+		doublet_idx = 0                                                                                                                     | 
+		for indx in prange(nHits):----------------------------------------------------------------------------------------------------------| #3
+			inner_hit = hit_table[indx]                                                                                                        | 
+			layer_range, z_ranges = get_valid_ranges(inner_hit)                                                                                | 
+			outerHitSet = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)]                                                       | 
+			for outer_hit_indx in prange(len(outerHitSet.T[0])):-------------------------------------------------------------------------------| #2
+				inner[doublet_idx] = inner_hit[0]                                                                                                 | 
+				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]                                                                             | 
+				doublet_idx += 1                                                                                                                  | 
+			                                                                                                                                   | 
+		if debug:                                                                                                                           | 
+			print('---> ', len(inner), ' Doublets Created')                                                                                    | 
+			                                                                                                                                   | 
+		return inner, outer                                                                                                                 | 
+------------------------------ After Optimisation ------------------------------
+Parallel region 0:
++--0 (parallel, fused with loop(s): 1)
+
+
+Parallel region 1:
++--3 (parallel)
+   +--2 (serial)
+
+
+ 
+Parallel region 0 (loop #0) had 1 loop(s) fused.
+ 
+Parallel region 1 (loop #3) had 0 loop(s) fused and 1 loop(s) serialized as part
+ of the larger parallel loop (#3).
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+ 
+--> Testing doublet_making with 0.1 density
+ 
+================================================================================
+ Parallel Accelerator Optimizing:  Function doublet_making.<locals>.make, 
+/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-
+packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py 
+(98)  
+================================================================================
+
+
+Parallel loop listing for  Function doublet_making.<locals>.make, /global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py (98) 
+--------------------------------------------------------------------------------------------------------------------------------------|loop #ID
+	@jit(nopython=True, parallel=True)                                                                                                   | 
+	def make(approximate_num_doublets=5000000):                                                                                          | 
+		'''                                                                                                                                 | 
+		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates       | 
+		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the        | 
+		computation time for each loop.                                                                                                     | 
+		'''                                                                                                                                 | 
+		inner, outer = np.zeros(approximate_num_doublets, dtype=int64), np.zeros(approximate_num_doublets, dtype=int64)---------------------| #4, 5
+		doublet_idx = 0                                                                                                                     | 
+		for indx in prange(nHits):----------------------------------------------------------------------------------------------------------| #7
+			inner_hit = hit_table[indx]                                                                                                        | 
+			layer_range, z_ranges = get_valid_ranges(inner_hit)                                                                                | 
+			outerHitSet = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)]                                                       | 
+			for outer_hit_indx in prange(len(outerHitSet.T[0])):-------------------------------------------------------------------------------| #6
+				inner[doublet_idx] = inner_hit[0]                                                                                                 | 
+				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]                                                                             | 
+				doublet_idx += 1                                                                                                                  | 
+			                                                                                                                                   | 
+		if debug:                                                                                                                           | 
+			print('---> ', len(inner), ' Doublets Created')                                                                                    | 
+			                                                                                                                                   | 
+		return inner, outer                                                                                                                 | 
+------------------------------ After Optimisation ------------------------------
+Parallel region 0:
++--4 (parallel, fused with loop(s): 5)
+
+
+Parallel region 1:
++--7 (parallel)
+   +--6 (serial)
+
+
+ 
+Parallel region 0 (loop #4) had 1 loop(s) fused.
+ 
+Parallel region 1 (loop #7) had 0 loop(s) fused and 1 loop(s) serialized as part
+ of the larger parallel loop (#7).
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+ 
+--> Testing doublet_making with 0.15 density
+ 
+================================================================================
+ Parallel Accelerator Optimizing:  Function doublet_making.<locals>.make, 
+/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-
+packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py 
+(98)  
+================================================================================
+
+
+Parallel loop listing for  Function doublet_making.<locals>.make, /global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py (98) 
+--------------------------------------------------------------------------------------------------------------------------------------|loop #ID
+	@jit(nopython=True, parallel=True)                                                                                                   | 
+	def make(approximate_num_doublets=5000000):                                                                                          | 
+		'''                                                                                                                                 | 
+		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates       | 
+		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the        | 
+		computation time for each loop.                                                                                                     | 
+		'''                                                                                                                                 | 
+		inner, outer = np.zeros(approximate_num_doublets, dtype=int64), np.zeros(approximate_num_doublets, dtype=int64)---------------------| #8, 9
+		doublet_idx = 0                                                                                                                     | 
+		for indx in prange(nHits):----------------------------------------------------------------------------------------------------------| #11
+			inner_hit = hit_table[indx]                                                                                                        | 
+			layer_range, z_ranges = get_valid_ranges(inner_hit)                                                                                | 
+			outerHitSet = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)]                                                       | 
+			for outer_hit_indx in prange(len(outerHitSet.T[0])):-------------------------------------------------------------------------------| #10
+				inner[doublet_idx] = inner_hit[0]                                                                                                 | 
+				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]                                                                             | 
+				doublet_idx += 1                                                                                                                  | 
+			                                                                                                                                   | 
+		if debug:                                                                                                                           | 
+			print('---> ', len(inner), ' Doublets Created')                                                                                    | 
+			                                                                                                                                   | 
+		return inner, outer                                                                                                                 | 
+------------------------------ After Optimisation ------------------------------
+Parallel region 0:
++--8 (parallel, fused with loop(s): 9)
+
+
+Parallel region 1:
++--11 (parallel)
+   +--10 (serial)
+
+
+ 
+Parallel region 0 (loop #8) had 1 loop(s) fused.
+ 
+Parallel region 1 (loop #11) had 0 loop(s) fused and 1 loop(s) serialized as 
+part of the larger parallel loop (#11).
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+ 
+--> Testing doublet_making with 0.2 density
+ 
+================================================================================
+ Parallel Accelerator Optimizing:  Function doublet_making.<locals>.make, 
+/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-
+packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py 
+(98)  
+================================================================================
+
+
+Parallel loop listing for  Function doublet_making.<locals>.make, /global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py (98) 
+--------------------------------------------------------------------------------------------------------------------------------------|loop #ID
+	@jit(nopython=True, parallel=True)                                                                                                   | 
+	def make(approximate_num_doublets=5000000):                                                                                          | 
+		'''                                                                                                                                 | 
+		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates       | 
+		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the        | 
+		computation time for each loop.                                                                                                     | 
+		'''                                                                                                                                 | 
+		inner, outer = np.zeros(approximate_num_doublets, dtype=int64), np.zeros(approximate_num_doublets, dtype=int64)---------------------| #12, 13
+		doublet_idx = 0                                                                                                                     | 
+		for indx in prange(nHits):----------------------------------------------------------------------------------------------------------| #15
+			inner_hit = hit_table[indx]                                                                                                        | 
+			layer_range, z_ranges = get_valid_ranges(inner_hit)                                                                                | 
+			outerHitSet = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)]                                                       | 
+			for outer_hit_indx in prange(len(outerHitSet.T[0])):-------------------------------------------------------------------------------| #14
+				inner[doublet_idx] = inner_hit[0]                                                                                                 | 
+				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]                                                                             | 
+				doublet_idx += 1                                                                                                                  | 
+			                                                                                                                                   | 
+		if debug:                                                                                                                           | 
+			print('---> ', len(inner), ' Doublets Created')                                                                                    | 
+			                                                                                                                                   | 
+		return inner, outer                                                                                                                 | 
+------------------------------ After Optimisation ------------------------------
+Parallel region 0:
++--12 (parallel, fused with loop(s): 13)
+
+
+Parallel region 1:
++--15 (parallel)
+   +--14 (serial)
+
+
+ 
+Parallel region 0 (loop #12) had 1 loop(s) fused.
+ 
+Parallel region 1 (loop #15) had 0 loop(s) fused and 1 loop(s) serialized as 
+part of the larger parallel loop (#15).
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+ 
+--> Testing doublet_making with 0.25 density
+ 
+================================================================================
+ Parallel Accelerator Optimizing:  Function doublet_making.<locals>.make, 
+/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-
+packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py 
+(98)  
+================================================================================
+
+
+Parallel loop listing for  Function doublet_making.<locals>.make, /global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py (98) 
+--------------------------------------------------------------------------------------------------------------------------------------|loop #ID
+	@jit(nopython=True, parallel=True)                                                                                                   | 
+	def make(approximate_num_doublets=5000000):                                                                                          | 
+		'''                                                                                                                                 | 
+		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates       | 
+		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the        | 
+		computation time for each loop.                                                                                                     | 
+		'''                                                                                                                                 | 
+		inner, outer = np.zeros(approximate_num_doublets, dtype=int64), np.zeros(approximate_num_doublets, dtype=int64)---------------------| #16, 17
+		doublet_idx = 0                                                                                                                     | 
+		for indx in prange(nHits):----------------------------------------------------------------------------------------------------------| #19
+			inner_hit = hit_table[indx]                                                                                                        | 
+			layer_range, z_ranges = get_valid_ranges(inner_hit)                                                                                | 
+			outerHitSet = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)]                                                       | 
+			for outer_hit_indx in prange(len(outerHitSet.T[0])):-------------------------------------------------------------------------------| #18
+				inner[doublet_idx] = inner_hit[0]                                                                                                 | 
+				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]                                                                             | 
+				doublet_idx += 1                                                                                                                  | 
+			                                                                                                                                   | 
+		if debug:                                                                                                                           | 
+			print('---> ', len(inner), ' Doublets Created')                                                                                    | 
+			                                                                                                                                   | 
+		return inner, outer                                                                                                                 | 
+------------------------------ After Optimisation ------------------------------
+Parallel region 0:
++--16 (parallel, fused with loop(s): 17)
+
+
+Parallel region 1:
++--19 (parallel)
+   +--18 (serial)
+
+
+ 
+Parallel region 0 (loop #16) had 1 loop(s) fused.
+ 
+Parallel region 1 (loop #19) had 0 loop(s) fused and 1 loop(s) serialized as 
+part of the larger parallel loop (#19).
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+ 
+--> Testing doublet_making with 0.3 density
+ 
+================================================================================
+ Parallel Accelerator Optimizing:  Function doublet_making.<locals>.make, 
+/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-
+packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py 
+(98)  
+================================================================================
+
+
+Parallel loop listing for  Function doublet_making.<locals>.make, /global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py (98) 
+--------------------------------------------------------------------------------------------------------------------------------------|loop #ID
+	@jit(nopython=True, parallel=True)                                                                                                   | 
+	def make(approximate_num_doublets=5000000):                                                                                          | 
+		'''                                                                                                                                 | 
+		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates       | 
+		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the        | 
+		computation time for each loop.                                                                                                     | 
+		'''                                                                                                                                 | 
+		inner, outer = np.zeros(approximate_num_doublets, dtype=int64), np.zeros(approximate_num_doublets, dtype=int64)---------------------| #20, 21
+		doublet_idx = 0                                                                                                                     | 
+		for indx in prange(nHits):----------------------------------------------------------------------------------------------------------| #23
+			inner_hit = hit_table[indx]                                                                                                        | 
+			layer_range, z_ranges = get_valid_ranges(inner_hit)                                                                                | 
+			outerHitSet = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)]                                                       | 
+			for outer_hit_indx in prange(len(outerHitSet.T[0])):-------------------------------------------------------------------------------| #22
+				inner[doublet_idx] = inner_hit[0]                                                                                                 | 
+				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]                                                                             | 
+				doublet_idx += 1                                                                                                                  | 
+			                                                                                                                                   | 
+		if debug:                                                                                                                           | 
+			print('---> ', len(inner), ' Doublets Created')                                                                                    | 
+			                                                                                                                                   | 
+		return inner, outer                                                                                                                 | 
+------------------------------ After Optimisation ------------------------------
+Parallel region 0:
++--20 (parallel, fused with loop(s): 21)
+
+
+Parallel region 1:
++--23 (parallel)
+   +--22 (serial)
+
+
+ 
+Parallel region 0 (loop #20) had 1 loop(s) fused.
+ 
+Parallel region 1 (loop #23) had 0 loop(s) fused and 1 loop(s) serialized as 
+part of the larger parallel loop (#23).
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+ 
+--> Testing doublet_making with 0.35 density
+ 
+================================================================================
+ Parallel Accelerator Optimizing:  Function doublet_making.<locals>.make, 
+/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-
+packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py 
+(98)  
+================================================================================
+
+
+Parallel loop listing for  Function doublet_making.<locals>.make, /global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py (98) 
+--------------------------------------------------------------------------------------------------------------------------------------|loop #ID
+	@jit(nopython=True, parallel=True)                                                                                                   | 
+	def make(approximate_num_doublets=5000000):                                                                                          | 
+		'''                                                                                                                                 | 
+		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates       | 
+		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the        | 
+		computation time for each loop.                                                                                                     | 
+		'''                                                                                                                                 | 
+		inner, outer = np.zeros(approximate_num_doublets, dtype=int64), np.zeros(approximate_num_doublets, dtype=int64)---------------------| #24, 25
+		doublet_idx = 0                                                                                                                     | 
+		for indx in prange(nHits):----------------------------------------------------------------------------------------------------------| #27
+			inner_hit = hit_table[indx]                                                                                                        | 
+			layer_range, z_ranges = get_valid_ranges(inner_hit)                                                                                | 
+			outerHitSet = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)]                                                       | 
+			for outer_hit_indx in prange(len(outerHitSet.T[0])):-------------------------------------------------------------------------------| #26
+				inner[doublet_idx] = inner_hit[0]                                                                                                 | 
+				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]                                                                             | 
+				doublet_idx += 1                                                                                                                  | 
+			                                                                                                                                   | 
+		if debug:                                                                                                                           | 
+			print('---> ', len(inner), ' Doublets Created')                                                                                    | 
+			                                                                                                                                   | 
+		return inner, outer                                                                                                                 | 
+------------------------------ After Optimisation ------------------------------
+Parallel region 0:
++--24 (parallel, fused with loop(s): 25)
+
+
+Parallel region 1:
++--27 (parallel)
+   +--26 (serial)
+
+
+ 
+Parallel region 0 (loop #24) had 1 loop(s) fused.
+ 
+Parallel region 1 (loop #27) had 0 loop(s) fused and 1 loop(s) serialized as 
+part of the larger parallel loop (#27).
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+ 
+--> Testing doublet_making with 0.4 density
+ 
+================================================================================
+ Parallel Accelerator Optimizing:  Function doublet_making.<locals>.make, 
+/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-
+packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py 
+(98)  
+================================================================================
+
+
+Parallel loop listing for  Function doublet_making.<locals>.make, /global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py (98) 
+--------------------------------------------------------------------------------------------------------------------------------------|loop #ID
+	@jit(nopython=True, parallel=True)                                                                                                   | 
+	def make(approximate_num_doublets=5000000):                                                                                          | 
+		'''                                                                                                                                 | 
+		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates       | 
+		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the        | 
+		computation time for each loop.                                                                                                     | 
+		'''                                                                                                                                 | 
+		inner, outer = np.zeros(approximate_num_doublets, dtype=int64), np.zeros(approximate_num_doublets, dtype=int64)---------------------| #28, 29
+		doublet_idx = 0                                                                                                                     | 
+		for indx in prange(nHits):----------------------------------------------------------------------------------------------------------| #31
+			inner_hit = hit_table[indx]                                                                                                        | 
+			layer_range, z_ranges = get_valid_ranges(inner_hit)                                                                                | 
+			outerHitSet = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)]                                                       | 
+			for outer_hit_indx in prange(len(outerHitSet.T[0])):-------------------------------------------------------------------------------| #30
+				inner[doublet_idx] = inner_hit[0]                                                                                                 | 
+				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]                                                                             | 
+				doublet_idx += 1                                                                                                                  | 
+			                                                                                                                                   | 
+		if debug:                                                                                                                           | 
+			print('---> ', len(inner), ' Doublets Created')                                                                                    | 
+			                                                                                                                                   | 
+		return inner, outer                                                                                                                 | 
+------------------------------ After Optimisation ------------------------------
+Parallel region 0:
++--28 (parallel, fused with loop(s): 29)
+
+
+Parallel region 1:
++--31 (parallel)
+   +--30 (serial)
+
+
+ 
+Parallel region 0 (loop #28) had 1 loop(s) fused.
+ 
+Parallel region 1 (loop #31) had 0 loop(s) fused and 1 loop(s) serialized as 
+part of the larger parallel loop (#31).
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+ 
+--> Testing doublet_making with 0.45 density
+ 
+================================================================================
+ Parallel Accelerator Optimizing:  Function doublet_making.<locals>.make, 
+/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-
+packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py 
+(98)  
+================================================================================
+
+
+Parallel loop listing for  Function doublet_making.<locals>.make, /global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py (98) 
+--------------------------------------------------------------------------------------------------------------------------------------|loop #ID
+	@jit(nopython=True, parallel=True)                                                                                                   | 
+	def make(approximate_num_doublets=5000000):                                                                                          | 
+		'''                                                                                                                                 | 
+		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates       | 
+		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the        | 
+		computation time for each loop.                                                                                                     | 
+		'''                                                                                                                                 | 
+		inner, outer = np.zeros(approximate_num_doublets, dtype=int64), np.zeros(approximate_num_doublets, dtype=int64)---------------------| #32, 33
+		doublet_idx = 0                                                                                                                     | 
+		for indx in prange(nHits):----------------------------------------------------------------------------------------------------------| #35
+			inner_hit = hit_table[indx]                                                                                                        | 
+			layer_range, z_ranges = get_valid_ranges(inner_hit)                                                                                | 
+			outerHitSet = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)]                                                       | 
+			for outer_hit_indx in prange(len(outerHitSet.T[0])):-------------------------------------------------------------------------------| #34
+				inner[doublet_idx] = inner_hit[0]                                                                                                 | 
+				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]                                                                             | 
+				doublet_idx += 1                                                                                                                  | 
+			                                                                                                                                   | 
+		if debug:                                                                                                                           | 
+			print('---> ', len(inner), ' Doublets Created')                                                                                    | 
+			                                                                                                                                   | 
+		return inner, outer                                                                                                                 | 
+------------------------------ After Optimisation ------------------------------
+Parallel region 0:
++--32 (parallel, fused with loop(s): 33)
+
+
+Parallel region 1:
++--35 (parallel)
+   +--34 (serial)
+
+
+ 
+Parallel region 0 (loop #32) had 1 loop(s) fused.
+ 
+Parallel region 1 (loop #35) had 0 loop(s) fused and 1 loop(s) serialized as 
+part of the larger parallel loop (#35).
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+ 
+--> Testing doublet_making with 0.5 density
+ 
+================================================================================
+ Parallel Accelerator Optimizing:  Function doublet_making.<locals>.make, 
+/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-
+packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py 
+(98)  
+================================================================================
+
+
+Parallel loop listing for  Function doublet_making.<locals>.make, /global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py (98) 
+--------------------------------------------------------------------------------------------------------------------------------------|loop #ID
+	@jit(nopython=True, parallel=True)                                                                                                   | 
+	def make(approximate_num_doublets=5000000):                                                                                          | 
+		'''                                                                                                                                 | 
+		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates       | 
+		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the        | 
+		computation time for each loop.                                                                                                     | 
+		'''                                                                                                                                 | 
+		inner, outer = np.zeros(approximate_num_doublets, dtype=int64), np.zeros(approximate_num_doublets, dtype=int64)---------------------| #36, 37
+		doublet_idx = 0                                                                                                                     | 
+		for indx in prange(nHits):----------------------------------------------------------------------------------------------------------| #39
+			inner_hit = hit_table[indx]                                                                                                        | 
+			layer_range, z_ranges = get_valid_ranges(inner_hit)                                                                                | 
+			outerHitSet = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)]                                                       | 
+			for outer_hit_indx in prange(len(outerHitSet.T[0])):-------------------------------------------------------------------------------| #38
+				inner[doublet_idx] = inner_hit[0]                                                                                                 | 
+				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]                                                                             | 
+				doublet_idx += 1                                                                                                                  | 
+			                                                                                                                                   | 
+		if debug:                                                                                                                           | 
+			print('---> ', len(inner), ' Doublets Created')                                                                                    | 
+			                                                                                                                                   | 
+		return inner, outer                                                                                                                 | 
+------------------------------ After Optimisation ------------------------------
+Parallel region 0:
++--36 (parallel, fused with loop(s): 37)
+
+
+Parallel region 1:
++--39 (parallel)
+   +--38 (serial)
+
+
+ 
+Parallel region 0 (loop #36) had 1 loop(s) fused.
+ 
+Parallel region 1 (loop #39) had 0 loop(s) fused and 1 loop(s) serialized as 
+part of the larger parallel loop (#39).
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+ 
+--> Testing doublet_making with 0.55 density
+ 
+================================================================================
+ Parallel Accelerator Optimizing:  Function doublet_making.<locals>.make, 
+/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-
+packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py 
+(98)  
+================================================================================
+
+
+Parallel loop listing for  Function doublet_making.<locals>.make, /global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py (98) 
+--------------------------------------------------------------------------------------------------------------------------------------|loop #ID
+	@jit(nopython=True, parallel=True)                                                                                                   | 
+	def make(approximate_num_doublets=5000000):                                                                                          | 
+		'''                                                                                                                                 | 
+		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates       | 
+		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the        | 
+		computation time for each loop.                                                                                                     | 
+		'''                                                                                                                                 | 
+		inner, outer = np.zeros(approximate_num_doublets, dtype=int64), np.zeros(approximate_num_doublets, dtype=int64)---------------------| #40, 41
+		doublet_idx = 0                                                                                                                     | 
+		for indx in prange(nHits):----------------------------------------------------------------------------------------------------------| #43
+			inner_hit = hit_table[indx]                                                                                                        | 
+			layer_range, z_ranges = get_valid_ranges(inner_hit)                                                                                | 
+			outerHitSet = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)]                                                       | 
+			for outer_hit_indx in prange(len(outerHitSet.T[0])):-------------------------------------------------------------------------------| #42
+				inner[doublet_idx] = inner_hit[0]                                                                                                 | 
+				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]                                                                             | 
+				doublet_idx += 1                                                                                                                  | 
+			                                                                                                                                   | 
+		if debug:                                                                                                                           | 
+			print('---> ', len(inner), ' Doublets Created')                                                                                    | 
+			                                                                                                                                   | 
+		return inner, outer                                                                                                                 | 
+------------------------------ After Optimisation ------------------------------
+Parallel region 0:
++--40 (parallel, fused with loop(s): 41)
+
+
+Parallel region 1:
++--43 (parallel)
+   +--42 (serial)
+
+
+ 
+Parallel region 0 (loop #40) had 1 loop(s) fused.
+ 
+Parallel region 1 (loop #43) had 0 loop(s) fused and 1 loop(s) serialized as 
+part of the larger parallel loop (#43).
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+ 
+--> Testing doublet_making with 0.6 density
+ 
+================================================================================
+ Parallel Accelerator Optimizing:  Function doublet_making.<locals>.make, 
+/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-
+packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py 
+(98)  
+================================================================================
+
+
+Parallel loop listing for  Function doublet_making.<locals>.make, /global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py (98) 
+--------------------------------------------------------------------------------------------------------------------------------------|loop #ID
+	@jit(nopython=True, parallel=True)                                                                                                   | 
+	def make(approximate_num_doublets=5000000):                                                                                          | 
+		'''                                                                                                                                 | 
+		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates       | 
+		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the        | 
+		computation time for each loop.                                                                                                     | 
+		'''                                                                                                                                 | 
+		inner, outer = np.zeros(approximate_num_doublets, dtype=int64), np.zeros(approximate_num_doublets, dtype=int64)---------------------| #44, 45
+		doublet_idx = 0                                                                                                                     | 
+		for indx in prange(nHits):----------------------------------------------------------------------------------------------------------| #47
+			inner_hit = hit_table[indx]                                                                                                        | 
+			layer_range, z_ranges = get_valid_ranges(inner_hit)                                                                                | 
+			outerHitSet = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)]                                                       | 
+			for outer_hit_indx in prange(len(outerHitSet.T[0])):-------------------------------------------------------------------------------| #46
+				inner[doublet_idx] = inner_hit[0]                                                                                                 | 
+				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]                                                                             | 
+				doublet_idx += 1                                                                                                                  | 
+			                                                                                                                                   | 
+		if debug:                                                                                                                           | 
+			print('---> ', len(inner), ' Doublets Created')                                                                                    | 
+			                                                                                                                                   | 
+		return inner, outer                                                                                                                 | 
+------------------------------ After Optimisation ------------------------------
+Parallel region 0:
++--44 (parallel, fused with loop(s): 45)
+
+
+Parallel region 1:
++--47 (parallel)
+   +--46 (serial)
+
+
+ 
+Parallel region 0 (loop #44) had 1 loop(s) fused.
+ 
+Parallel region 1 (loop #47) had 0 loop(s) fused and 1 loop(s) serialized as 
+part of the larger parallel loop (#47).
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+ 
+--> Testing doublet_making with 0.65 density
+ 
+================================================================================
+ Parallel Accelerator Optimizing:  Function doublet_making.<locals>.make, 
+/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-
+packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py 
+(98)  
+================================================================================
+
+
+Parallel loop listing for  Function doublet_making.<locals>.make, /global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py (98) 
+--------------------------------------------------------------------------------------------------------------------------------------|loop #ID
+	@jit(nopython=True, parallel=True)                                                                                                   | 
+	def make(approximate_num_doublets=5000000):                                                                                          | 
+		'''                                                                                                                                 | 
+		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates       | 
+		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the        | 
+		computation time for each loop.                                                                                                     | 
+		'''                                                                                                                                 | 
+		inner, outer = np.zeros(approximate_num_doublets, dtype=int64), np.zeros(approximate_num_doublets, dtype=int64)---------------------| #48, 49
+		doublet_idx = 0                                                                                                                     | 
+		for indx in prange(nHits):----------------------------------------------------------------------------------------------------------| #51
+			inner_hit = hit_table[indx]                                                                                                        | 
+			layer_range, z_ranges = get_valid_ranges(inner_hit)                                                                                | 
+			outerHitSet = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)]                                                       | 
+			for outer_hit_indx in prange(len(outerHitSet.T[0])):-------------------------------------------------------------------------------| #50
+				inner[doublet_idx] = inner_hit[0]                                                                                                 | 
+				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]                                                                             | 
+				doublet_idx += 1                                                                                                                  | 
+			                                                                                                                                   | 
+		if debug:                                                                                                                           | 
+			print('---> ', len(inner), ' Doublets Created')                                                                                    | 
+			                                                                                                                                   | 
+		return inner, outer                                                                                                                 | 
+------------------------------ After Optimisation ------------------------------
+Parallel region 0:
++--48 (parallel, fused with loop(s): 49)
+
+
+Parallel region 1:
++--51 (parallel)
+   +--50 (serial)
+
+
+ 
+Parallel region 0 (loop #48) had 1 loop(s) fused.
+ 
+Parallel region 1 (loop #51) had 0 loop(s) fused and 1 loop(s) serialized as 
+part of the larger parallel loop (#51).
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+ 
+--> Testing doublet_making with 0.7 density
+ 
+================================================================================
+ Parallel Accelerator Optimizing:  Function doublet_making.<locals>.make, 
+/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-
+packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py 
+(98)  
+================================================================================
+
+
+Parallel loop listing for  Function doublet_making.<locals>.make, /global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py (98) 
+--------------------------------------------------------------------------------------------------------------------------------------|loop #ID
+	@jit(nopython=True, parallel=True)                                                                                                   | 
+	def make(approximate_num_doublets=5000000):                                                                                          | 
+		'''                                                                                                                                 | 
+		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates       | 
+		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the        | 
+		computation time for each loop.                                                                                                     | 
+		'''                                                                                                                                 | 
+		inner, outer = np.zeros(approximate_num_doublets, dtype=int64), np.zeros(approximate_num_doublets, dtype=int64)---------------------| #52, 53
+		doublet_idx = 0                                                                                                                     | 
+		for indx in prange(nHits):----------------------------------------------------------------------------------------------------------| #55
+			inner_hit = hit_table[indx]                                                                                                        | 
+			layer_range, z_ranges = get_valid_ranges(inner_hit)                                                                                | 
+			outerHitSet = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)]                                                       | 
+			for outer_hit_indx in prange(len(outerHitSet.T[0])):-------------------------------------------------------------------------------| #54
+				inner[doublet_idx] = inner_hit[0]                                                                                                 | 
+				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]                                                                             | 
+				doublet_idx += 1                                                                                                                  | 
+			                                                                                                                                   | 
+		if debug:                                                                                                                           | 
+			print('---> ', len(inner), ' Doublets Created')                                                                                    | 
+			                                                                                                                                   | 
+		return inner, outer                                                                                                                 | 
+------------------------------ After Optimisation ------------------------------
+Parallel region 0:
++--52 (parallel, fused with loop(s): 53)
+
+
+Parallel region 1:
++--55 (parallel)
+   +--54 (serial)
+
+
+ 
+Parallel region 0 (loop #52) had 1 loop(s) fused.
+ 
+Parallel region 1 (loop #55) had 0 loop(s) fused and 1 loop(s) serialized as 
+part of the larger parallel loop (#55).
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+ 
+--> Testing doublet_making with 0.75 density
+ 
+================================================================================
+ Parallel Accelerator Optimizing:  Function doublet_making.<locals>.make, 
+/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-
+packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py 
+(98)  
+================================================================================
+
+
+Parallel loop listing for  Function doublet_making.<locals>.make, /global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py (98) 
+--------------------------------------------------------------------------------------------------------------------------------------|loop #ID
+	@jit(nopython=True, parallel=True)                                                                                                   | 
+	def make(approximate_num_doublets=5000000):                                                                                          | 
+		'''                                                                                                                                 | 
+		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates       | 
+		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the        | 
+		computation time for each loop.                                                                                                     | 
+		'''                                                                                                                                 | 
+		inner, outer = np.zeros(approximate_num_doublets, dtype=int64), np.zeros(approximate_num_doublets, dtype=int64)---------------------| #56, 57
+		doublet_idx = 0                                                                                                                     | 
+		for indx in prange(nHits):----------------------------------------------------------------------------------------------------------| #59
+			inner_hit = hit_table[indx]                                                                                                        | 
+			layer_range, z_ranges = get_valid_ranges(inner_hit)                                                                                | 
+			outerHitSet = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)]                                                       | 
+			for outer_hit_indx in prange(len(outerHitSet.T[0])):-------------------------------------------------------------------------------| #58
+				inner[doublet_idx] = inner_hit[0]                                                                                                 | 
+				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]                                                                             | 
+				doublet_idx += 1                                                                                                                  | 
+			                                                                                                                                   | 
+		if debug:                                                                                                                           | 
+			print('---> ', len(inner), ' Doublets Created')                                                                                    | 
+			                                                                                                                                   | 
+		return inner, outer                                                                                                                 | 
+------------------------------ After Optimisation ------------------------------
+Parallel region 0:
++--56 (parallel, fused with loop(s): 57)
+
+
+Parallel region 1:
++--59 (parallel)
+   +--58 (serial)
+
+
+ 
+Parallel region 0 (loop #56) had 1 loop(s) fused.
+ 
+Parallel region 1 (loop #59) had 0 loop(s) fused and 1 loop(s) serialized as 
+part of the larger parallel loop (#59).
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+ 
+--> Testing doublet_making with 0.8 density
+ 
+================================================================================
+ Parallel Accelerator Optimizing:  Function doublet_making.<locals>.make, 
+/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-
+packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py 
+(98)  
+================================================================================
+
+
+Parallel loop listing for  Function doublet_making.<locals>.make, /global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py (98) 
+--------------------------------------------------------------------------------------------------------------------------------------|loop #ID
+	@jit(nopython=True, parallel=True)                                                                                                   | 
+	def make(approximate_num_doublets=5000000):                                                                                          | 
+		'''                                                                                                                                 | 
+		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates       | 
+		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the        | 
+		computation time for each loop.                                                                                                     | 
+		'''                                                                                                                                 | 
+		inner, outer = np.zeros(approximate_num_doublets, dtype=int64), np.zeros(approximate_num_doublets, dtype=int64)---------------------| #60, 61
+		doublet_idx = 0                                                                                                                     | 
+		for indx in prange(nHits):----------------------------------------------------------------------------------------------------------| #63
+			inner_hit = hit_table[indx]                                                                                                        | 
+			layer_range, z_ranges = get_valid_ranges(inner_hit)                                                                                | 
+			outerHitSet = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)]                                                       | 
+			for outer_hit_indx in prange(len(outerHitSet.T[0])):-------------------------------------------------------------------------------| #62
+				inner[doublet_idx] = inner_hit[0]                                                                                                 | 
+				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]                                                                             | 
+				doublet_idx += 1                                                                                                                  | 
+			                                                                                                                                   | 
+		if debug:                                                                                                                           | 
+			print('---> ', len(inner), ' Doublets Created')                                                                                    | 
+			                                                                                                                                   | 
+		return inner, outer                                                                                                                 | 
+------------------------------ After Optimisation ------------------------------
+Parallel region 0:
++--60 (parallel, fused with loop(s): 61)
+
+
+Parallel region 1:
++--63 (parallel)
+   +--62 (serial)
+
+
+ 
+Parallel region 0 (loop #60) had 1 loop(s) fused.
+ 
+Parallel region 1 (loop #63) had 0 loop(s) fused and 1 loop(s) serialized as 
+part of the larger parallel loop (#63).
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+ 
+--> Testing doublet_making with 0.85 density
+ 
+================================================================================
+ Parallel Accelerator Optimizing:  Function doublet_making.<locals>.make, 
+/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-
+packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py 
+(98)  
+================================================================================
+
+
+Parallel loop listing for  Function doublet_making.<locals>.make, /global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py (98) 
+--------------------------------------------------------------------------------------------------------------------------------------|loop #ID
+	@jit(nopython=True, parallel=True)                                                                                                   | 
+	def make(approximate_num_doublets=5000000):                                                                                          | 
+		'''                                                                                                                                 | 
+		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates       | 
+		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the        | 
+		computation time for each loop.                                                                                                     | 
+		'''                                                                                                                                 | 
+		inner, outer = np.zeros(approximate_num_doublets, dtype=int64), np.zeros(approximate_num_doublets, dtype=int64)---------------------| #64, 65
+		doublet_idx = 0                                                                                                                     | 
+		for indx in prange(nHits):----------------------------------------------------------------------------------------------------------| #67
+			inner_hit = hit_table[indx]                                                                                                        | 
+			layer_range, z_ranges = get_valid_ranges(inner_hit)                                                                                | 
+			outerHitSet = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)]                                                       | 
+			for outer_hit_indx in prange(len(outerHitSet.T[0])):-------------------------------------------------------------------------------| #66
+				inner[doublet_idx] = inner_hit[0]                                                                                                 | 
+				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]                                                                             | 
+				doublet_idx += 1                                                                                                                  | 
+			                                                                                                                                   | 
+		if debug:                                                                                                                           | 
+			print('---> ', len(inner), ' Doublets Created')                                                                                    | 
+			                                                                                                                                   | 
+		return inner, outer                                                                                                                 | 
+------------------------------ After Optimisation ------------------------------
+Parallel region 0:
++--64 (parallel, fused with loop(s): 65)
+
+
+Parallel region 1:
++--67 (parallel)
+   +--66 (serial)
+
+
+ 
+Parallel region 0 (loop #64) had 1 loop(s) fused.
+ 
+Parallel region 1 (loop #67) had 0 loop(s) fused and 1 loop(s) serialized as 
+part of the larger parallel loop (#67).
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+ 
+--> Testing doublet_making with 0.9 density
+ 
+================================================================================
+ Parallel Accelerator Optimizing:  Function doublet_making.<locals>.make, 
+/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-
+packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py 
+(98)  
+================================================================================
+
+
+Parallel loop listing for  Function doublet_making.<locals>.make, /global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py (98) 
+--------------------------------------------------------------------------------------------------------------------------------------|loop #ID
+	@jit(nopython=True, parallel=True)                                                                                                   | 
+	def make(approximate_num_doublets=5000000):                                                                                          | 
+		'''                                                                                                                                 | 
+		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates       | 
+		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the        | 
+		computation time for each loop.                                                                                                     | 
+		'''                                                                                                                                 | 
+		inner, outer = np.zeros(approximate_num_doublets, dtype=int64), np.zeros(approximate_num_doublets, dtype=int64)---------------------| #68, 69
+		doublet_idx = 0                                                                                                                     | 
+		for indx in prange(nHits):----------------------------------------------------------------------------------------------------------| #71
+			inner_hit = hit_table[indx]                                                                                                        | 
+			layer_range, z_ranges = get_valid_ranges(inner_hit)                                                                                | 
+			outerHitSet = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)]                                                       | 
+			for outer_hit_indx in prange(len(outerHitSet.T[0])):-------------------------------------------------------------------------------| #70
+				inner[doublet_idx] = inner_hit[0]                                                                                                 | 
+				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]                                                                             | 
+				doublet_idx += 1                                                                                                                  | 
+			                                                                                                                                   | 
+		if debug:                                                                                                                           | 
+			print('---> ', len(inner), ' Doublets Created')                                                                                    | 
+			                                                                                                                                   | 
+		return inner, outer                                                                                                                 | 
+------------------------------ After Optimisation ------------------------------
+Parallel region 0:
++--68 (parallel, fused with loop(s): 69)
+
+
+Parallel region 1:
++--71 (parallel)
+   +--70 (serial)
+
+
+ 
+Parallel region 0 (loop #68) had 1 loop(s) fused.
+ 
+Parallel region 1 (loop #71) had 0 loop(s) fused and 1 loop(s) serialized as 
+part of the larger parallel loop (#71).
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+ 
+--> Testing doublet_making with 0.95 density
+ 
+================================================================================
+ Parallel Accelerator Optimizing:  Function doublet_making.<locals>.make, 
+/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-
+packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py 
+(98)  
+================================================================================
+
+
+Parallel loop listing for  Function doublet_making.<locals>.make, /global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py (98) 
+--------------------------------------------------------------------------------------------------------------------------------------|loop #ID
+	@jit(nopython=True, parallel=True)                                                                                                   | 
+	def make(approximate_num_doublets=5000000):                                                                                          | 
+		'''                                                                                                                                 | 
+		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates       | 
+		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the        | 
+		computation time for each loop.                                                                                                     | 
+		'''                                                                                                                                 | 
+		inner, outer = np.zeros(approximate_num_doublets, dtype=int64), np.zeros(approximate_num_doublets, dtype=int64)---------------------| #72, 73
+		doublet_idx = 0                                                                                                                     | 
+		for indx in prange(nHits):----------------------------------------------------------------------------------------------------------| #75
+			inner_hit = hit_table[indx]                                                                                                        | 
+			layer_range, z_ranges = get_valid_ranges(inner_hit)                                                                                | 
+			outerHitSet = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)]                                                       | 
+			for outer_hit_indx in prange(len(outerHitSet.T[0])):-------------------------------------------------------------------------------| #74
+				inner[doublet_idx] = inner_hit[0]                                                                                                 | 
+				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]                                                                             | 
+				doublet_idx += 1                                                                                                                  | 
+			                                                                                                                                   | 
+		if debug:                                                                                                                           | 
+			print('---> ', len(inner), ' Doublets Created')                                                                                    | 
+			                                                                                                                                   | 
+		return inner, outer                                                                                                                 | 
+------------------------------ After Optimisation ------------------------------
+Parallel region 0:
++--72 (parallel, fused with loop(s): 73)
+
+
+Parallel region 1:
++--75 (parallel)
+   +--74 (serial)
+
+
+ 
+Parallel region 0 (loop #72) had 1 loop(s) fused.
+ 
+Parallel region 1 (loop #75) had 0 loop(s) fused and 1 loop(s) serialized as 
+part of the larger parallel loop (#75).
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+ 
+--> Testing doublet_making with 1.0 density
+ 
+================================================================================
+ Parallel Accelerator Optimizing:  Function doublet_making.<locals>.make, 
+/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-
+packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py 
+(98)  
+================================================================================
+
+
+Parallel loop listing for  Function doublet_making.<locals>.make, /global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py (98) 
+--------------------------------------------------------------------------------------------------------------------------------------|loop #ID
+	@jit(nopython=True, parallel=True)                                                                                                   | 
+	def make(approximate_num_doublets=5000000):                                                                                          | 
+		'''                                                                                                                                 | 
+		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates       | 
+		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the        | 
+		computation time for each loop.                                                                                                     | 
+		'''                                                                                                                                 | 
+		inner, outer = np.zeros(approximate_num_doublets, dtype=int64), np.zeros(approximate_num_doublets, dtype=int64)---------------------| #76, 77
+		doublet_idx = 0                                                                                                                     | 
+		for indx in prange(nHits):----------------------------------------------------------------------------------------------------------| #79
+			inner_hit = hit_table[indx]                                                                                                        | 
+			layer_range, z_ranges = get_valid_ranges(inner_hit)                                                                                | 
+			outerHitSet = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)]                                                       | 
+			for outer_hit_indx in prange(len(outerHitSet.T[0])):-------------------------------------------------------------------------------| #78
+				inner[doublet_idx] = inner_hit[0]                                                                                                 | 
+				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]                                                                             | 
+				doublet_idx += 1                                                                                                                  | 
+			                                                                                                                                   | 
+		if debug:                                                                                                                           | 
+			print('---> ', len(inner), ' Doublets Created')                                                                                    | 
+			                                                                                                                                   | 
+		return inner, outer                                                                                                                 | 
+------------------------------ After Optimisation ------------------------------
+Parallel region 0:
++--76 (parallel, fused with loop(s): 77)
+
+
+Parallel region 1:
++--79 (parallel)
+   +--78 (serial)
+
+
+ 
+Parallel region 0 (loop #76) had 1 loop(s) fused.
+ 
+Parallel region 1 (loop #79) had 0 loop(s) fused and 1 loop(s) serialized as 
+part of the larger parallel loop (#79).
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+ 
+--> Stats
+    density  runtime  recall  precision  doublets_made        seed
+0      0.05     3.83    0.06       0.02        5000000   831141906
+1      0.10     2.43    0.07       0.01        5000000   345180938
+2      0.15     2.63    0.07       0.01        5000000   894829259
+3      0.20     2.80    0.07       0.01        5000000   252966103
+4      0.25     2.95    0.08       0.00        5000000   220478874
+5      0.30     3.05    0.07       0.00        5000000   386669915
+6      0.35     3.27    0.06       0.00        5000000   558967921
+7      0.40     3.46    0.07       0.00        5000000   773704905
+8      0.45     3.17    0.08       0.00        5000000  1019093947
+9      0.50     3.29    0.07       0.00        5000000   358661031
+10     0.55     3.59    0.07       0.00        5000000   574071558
+11     0.60     3.94    0.08       0.00        5000000   881897302
+12     0.65     4.12    0.06       0.00        5000000   498080624
+13     0.70     4.23    0.07       0.00        5000000     8188920
+14     0.75     4.71    0.07       0.00        5000000   886804062
+15     0.80     4.77    0.07       0.00        5000000    11593423
+16     0.85     5.10    0.07       0.00        5000000   776260572
+17     0.90     5.55    0.07       0.00        5000000   498730377
+18     0.95     5.54    0.07       0.00        5000000   159819044
+19     1.00     6.16    0.07       0.00        5000000   823268971

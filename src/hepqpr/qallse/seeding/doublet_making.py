@@ -2,7 +2,7 @@ import numpy as np
 from .storage import *
 
 from hepqpr.qallse.data_wrapper import * 
-from time import process_time
+from time import time
 
 from numba import jit, guvectorize, prange
 from numba import int64, float32, boolean
@@ -140,14 +140,14 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 		debug_hit_table(hit_table, spStorage)
 		
 	if time_event:
-		start = process_time()
+		start = time()
 	
 	doubletsStorage.inner, doubletsStorage.outer = make()
 	
-	#make.parallel_diagnostics()
+	make.parallel_diagnostics()
 				
 	if time_event:
-		runtime = process_time() - start
+		runtime = time() - start
 		if debug:
 			print(f'RUNTIME: .../seeding/doublet_making.py  - {runtime} sec')
 		
