@@ -14,7 +14,7 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 	#------------- Define Constants -------------#
 	#____________________________________________#
 	
-	time_event, debug = True, True
+	time_event, debug = True, False
 	nHits = spStorage.x.size
 	nPhiSlices = len(spStorage.phiSlices)
 	nLayers = len(spStorage.phiSlices[0].layerBegin)
@@ -95,24 +95,30 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 		return layer_range, z_ranges
 		
 		
-	@jit(nopython=True, parallel=False)
-	def make(approximate_num_doublets=5000000):
+	@jit(nopython=True, parallel=True)
+	def make(approx_num_doublets=5000000):
 		'''
 		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates
 		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the 
 		computation time for each loop.
 		'''
-		inner, outer = np.zeros(approximate_num_doublets, dtype=int64), np.zeros(approximate_num_doublets, dtype=int64)
-		doublet_idx = 0
-		for indx in prange(nHits):
-			inner_hit = hit_table[indx]
+		ncolumns = int(approx_num_doublets * 0.01)
+		outer_2D = np.zeros((nHits, ncolumns), dtype=int64)
+		
+		for row_idx in prange(nHits):
+			inner_hit = hit_table[row_idx]
 			layer_range, z_ranges = get_valid_ranges(inner_hit)
-			outerHitSet = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)]
-			for outer_hit_indx in prange(len(outerHitSet.T[0])):
-				inner[doublet_idx] = inner_hit[0]
-				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]
-				doublet_idx += 1
-			
+			outer_hit_set = hit_table[filter(hit_table, inner_hit, layer_range, z_ranges)].T[0]
+			for column_idx in prange(len(outer_hit_set)):
+				outer_2D[row_idx][column_idx] = outer_hit_set[column_idx]
+		
+		
+		outer = np.reshape(outer_2D, (1, nHits * ncolumns))[0]
+		inner = np.zeros(len(outer), dtype=int64)
+		for row_count in prange(outer_2D.shape[0]):
+			for col_count in prange(ncolumns):	
+				inner[(row_count * ncolumns + col_count)] = hit_table[row_count][0]
+		
 		return inner, outer
 			
 	#____________________________________________#
@@ -140,8 +146,6 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 		start = time()
 	
 	doubletsStorage.inner, doubletsStorage.outer = make(approx_doublet_length(len(hit_table)))
-	
-	#make.parallel_diagnostics()
 				
 	if time_event:
 		runtime = time() - start

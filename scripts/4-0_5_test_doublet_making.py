@@ -9,7 +9,7 @@ from hepqpr.qallse.dsmaker import create_dataset
 if __name__ == '__main__':
 	
 	#---- Script Constants
-	test_densities = [0.5] * 10
+	test_densities = [0.5] * 1
 	trials_per_density = 1
 	input_seed = None
 	
