@@ -14,7 +14,7 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 	#------------- Define Constants -------------#
 	#____________________________________________#
 	
-	time_event, debug = True, False
+	time_event, debug = True, True
 	nHits = spStorage.x.size
 	nPhiSlices = len(spStorage.phiSlices)
 	nLayers = len(spStorage.phiSlices[0].layerBegin)
@@ -95,7 +95,7 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 		return layer_range, z_ranges
 		
 		
-	@jit(nopython=True, parallel=True)
+	@jit(nopython=True, parallel=False)
 	def make(approximate_num_doublets=5000000):
 		'''
 		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates
@@ -112,9 +112,6 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 				inner[doublet_idx] = inner_hit[0]
 				outer[doublet_idx] = outerHitSet.T[0][outer_hit_indx]
 				doublet_idx += 1
-			
-		if debug:
-			print('---> ', len(inner), ' Doublets Created')
 			
 		return inner, outer
 			
@@ -142,9 +139,9 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 	if time_event:
 		start = time()
 	
-	doubletsStorage.inner, doubletsStorage.outer = make()
+	doubletsStorage.inner, doubletsStorage.outer = make(approx_doublet_length(len(hit_table)))
 	
-	make.parallel_diagnostics()
+	#make.parallel_diagnostics()
 				
 	if time_event:
 		runtime = time() - start
@@ -191,7 +188,7 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 		doublets = pd.DataFrame({'inner': doubletsStorage.inner, 'outer': doubletsStorage.outer})
 		doublets.drop_duplicates(inplace=True, keep=False)
 		p, r, ms = dataw.compute_score(doublets)
-		doublet_making_result = [round(runtime, 2), round(r, 2), round(p, 2), len(doubletsStorage.inner)]
+		doublet_making_result = [round(runtime, 2), round(r, 2), round(p, 2), doublets.shape[0]]
 		return doublet_making_result
 			
 	#____________________________________________#
@@ -334,6 +331,16 @@ def debug_hit_table(table, storage):
 			hitCount = 0
 	print('Hit Table Debug: ', all(result))
 	
+
+def approx_doublet_length(nhits):
+	a3 = (-1.073) * pow(10, -9)
+	a2 = (1.616)  * pow(10, -3)
+	a1 = (-8.490) * pow(10,-2)
+	a0 = 9000
+	return int(a3 * pow(nhits,3) + a2 * pow(nhits,2) + a1 * nhits + a0)
+
+
+
 def triple_space():
 	print()
 	print()
