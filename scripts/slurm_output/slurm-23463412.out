@@ -1,0 +1,3 @@
+slurmstepd: error: *** STEP 23463412.0 ON nid00595 CANCELLED AT 2019-08-01T17:16:57 DUE TO TIME LIMIT ***
+srun: got SIGCONT
+srun: forcing job termination

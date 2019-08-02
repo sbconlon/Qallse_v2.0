@@ -102,9 +102,9 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the 
 		computation time for each loop.
 		'''
-		ncolumns = int(approx_num_doublets * 0.01)
+		ncolumns = int(nHits * 0.01)
 		outer_2D = np.zeros((nHits, ncolumns), dtype=int64)
-		
+
 		for row_idx in prange(nHits):
 			inner_hit = hit_table[row_idx]
 			layer_range, z_ranges = get_valid_ranges(inner_hit)

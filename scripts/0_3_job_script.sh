@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -C haswell
 #SBATCH -q debug
-#SBATCH -J 0_30_Parallel_Test
+#SBATCH -J 0_3_Parallel_Test
 #SBATCH --mail-user=conlon@berkeley.edu
 #SBATCH --mail-type=ALL
 #SBATCH -t 00:30:00
