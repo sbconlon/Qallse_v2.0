@@ -1,0 +1,8 @@
+--> Testing doublet_making with 0.9 density
+--> Testing doublet_making with 0.9 density
+--> Testing doublet_making with 0.9 density
+--> Stats
+   density  runtime    recall  precision  doublets_made       seed
+0      0.9   122.84  0.993046   0.000554        7760466   28247005
+1      0.9   126.97  0.991737   0.000546        7714838  501692939
+2      0.9   123.66  0.993769   0.000553        7808147   40872885
