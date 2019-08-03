@@ -1,0 +1,21 @@
+{
+    "num_hits": 583,
+    "num_tracks": 81,
+    "num_important_tracks": 6,
+    "num_noise": 130,
+    "random_seed": 227506801,
+    "time": "2019-07-29T11:51:20.956282",
+    "params": {
+        "input_path": "/home/atlas/Qallse_v2/Qallse_v2.0/src/hepqpr/qallse/dsmaker/data/event000001000",
+        "output_path": ".",
+        "density": 0.01,
+        "high_pt_cut": 1.0,
+        "double_hits_ok": false,
+        "gen_doublets": true,
+        "prefix": null,
+        "random_seed": null,
+        "phi_bounds": null,
+        "test_mode": false,
+        "min_hits_per_track": 5
+    }
+}
