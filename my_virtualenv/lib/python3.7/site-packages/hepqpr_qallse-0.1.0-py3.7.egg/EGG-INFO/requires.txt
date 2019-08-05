@@ -1,0 +1,8 @@
+numpy<1.16.0,>=1.14.0
+pandas<0.24,>=0.23
+trackml
+dwave-qbsolv==0.2.10
+dwave-neal==0.4.5
+click==7.0
+jsonschema<3.0.0
+plotly<3.5,>=3.4
