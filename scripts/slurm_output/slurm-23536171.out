@@ -1,0 +1,22 @@
+--> Testing doublet_making with 0.05 density
+--> Testing doublet_making with 0.05 density
+--> Testing doublet_making with 0.05 density
+--> Testing doublet_making with 0.05 density
+--> Testing doublet_making with 0.05 density
+--> Testing doublet_making with 0.05 density
+--> Testing doublet_making with 0.05 density
+--> Testing doublet_making with 0.05 density
+--> Testing doublet_making with 0.05 density
+--> Testing doublet_making with 0.05 density
+--> Stats
+   density  runtime  recall  precision  doublets_made       seed
+0     0.05     0.94    1.00       0.02          14029   89851134
+1     0.05     0.34    1.00       0.02          12449  556746155
+2     0.05     0.35    0.99       0.02          13856  245770406
+3     0.05     0.36    0.99       0.02          15503    6106755
+4     0.05     0.36    1.00       0.01          15533  524560820
+5     0.05     0.35    0.99       0.01          14114  931353422
+6     0.05     0.34    0.98       0.01          12652  939765759
+7     0.05     0.35    1.00       0.01          15574  361747096
+8     0.05     0.36    0.99       0.02          14705  336231498
+9     0.05     0.35    1.00       0.01          13403  336693116

@@ -1,0 +1,16 @@
+--> Testing doublet_making with 0.05 density
+Traceback (most recent call last):
+  File "/global/u1/s/sconlon/Qallse_v2.0/scripts/4-0_05_test_doublet_making.py", line 27, in <module>
+    test_mode=True)
+  File "/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/dsmaker/dsmaker.py", line 203, in create_dataset
+    from hepqpr.qallse.seeding import generate_doublets
+  File "/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/__init__.py", line 1, in <module>
+    from .main import generate_doublets
+  File "/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/main.py", line 7, in <module>
+    from .doublet_making import doublet_making
+  File "/global/homes/s/sconlon/.conda/envs/myenv/lib/python3.6/site-packages/hepqpr_qallse-0.1.0-py3.6.egg/hepqpr/qallse/seeding/doublet_making.py", line 61
+    def filter(table, inner_hit, layer_range, z_ranges, keep):
+      ^
+SyntaxError: invalid syntax
+srun: error: nid00555: task 0: Exited with exit code 1
+srun: Terminating job step 23536150.0
