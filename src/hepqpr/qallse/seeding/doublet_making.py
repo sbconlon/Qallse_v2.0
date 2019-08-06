@@ -64,10 +64,10 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 		'''
 		for row_idx in range(table.shape[0]):
 			keep[row_idx] = (filter_layers(table[row_idx][1], layer_range) and 
-			                 filter_phi(inner_hit[2], table[row_idx][2], nPhiSlices) and 
-			                 filter_doublet_length(inner_hit[3], table[row_idx][3], minDoubletLength, maxDoubletLength) and 
-			                 filter_horizontal_doublets(inner_hit[3], inner_hit[4], table[row_idx][3], table[row_idx][4], maxCtg) and 
-			                 filter_z(table[row_idx][1], table[row_idx][4], layer_range, z_ranges))
+			       filter_phi(inner_hit[2], table[row_idx][2], nPhiSlices) and 
+			       filter_doublet_length(inner_hit[3], table[row_idx][3], minDoubletLength, maxDoubletLength) and 
+			       filter_horizontal_doublets(inner_hit[3], inner_hit[4], table[row_idx][3], table[row_idx][4], maxCtg) and 
+			       filter_z(table[row_idx][1], table[row_idx][4], layer_range, z_ranges))
 
 
 	@jit(nopython=True)
