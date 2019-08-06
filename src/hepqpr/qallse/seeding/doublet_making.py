@@ -93,9 +93,9 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 		
 	def make():
 		'''
-		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates
-		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the 
-		computation time for each loop.
+		This function makes all possible doublets that fit the criteria of the filter. It first choses an 
+		inner hit and then iterates through the hit table looking for possible outer hit candidates. It 
+		chooses two inner hits in an attempt to help balance the computation time for each loop.
 		'''
 		for indx in range(nHits//2):
 			# If there are an even number of rows, the final iteration should be ignored
