@@ -98,9 +98,10 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 	@jit(nopython=True, parallel=True)
 	def make(approx_num_doublets=5000000):
 		'''
-		This function makes all possible doublets that fit the criteria of the filter. It first choses an inner hit and then iterates
-		through the hit table looking for possible outer hit candidates. It chooses two inner hits in an attempt to help balance the 
-		computation time for each loop.
+		This function makes all possible doublets that fit the criteria of the filter. It first 
+		choses an inner hit and then iterates through the hit table looking for possible outer 
+		hit candidates. It then returns a list of hit ids cooresponding to the inner and outer
+		hit pairs of the created doublets.
 		'''
 		ncolumns = int(nHits * 0.01)
 		outer_2D = np.zeros((nHits, ncolumns), dtype=int64)
