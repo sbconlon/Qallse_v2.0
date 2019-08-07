@@ -11,7 +11,18 @@ from .utils import *
 
 from hepqpr.qallse.data_wrapper import *
 
-def generate_doublets(truth=None, hits=None, truth_path=None, hit_path=None, config_cls=HptSeedingConfig) -> pd.DataFrame:
+
+def generate_doublets(*args, **kwargs):
+    if 'test_mode' in kwargs and kwargs['test_mode']:
+        return run_seeding(*args, **kwargs)
+    else:
+        seeding_results = run_seeding(*args, **kwargs)
+        doublets = structures_to_doublets(*seeding_results)
+        doublets_df = pd.DataFrame(doublets, columns=['start', 'end'])
+        return doublets_df
+
+
+def run_seeding(truth_path=None, hits_path=None, truth=None, hits=None, config_cls=HptSeedingConfig, test_mode=False):
     det = DetectorModel.buildModel_TrackML()
     n_layers = len(det.layers)
 
@@ -22,17 +33,20 @@ def generate_doublets(truth=None, hits=None, truth_path=None, hit_path=None, con
 
     config = config_cls(n_layers)
     dataw = DataWrapper(hits, truth)
+    spStorage = SpacepointStorage(hits, config)
+    doubletsStorage = DoubletStorage()
     
-    # constructing hit_table
-    hit_table = hits[:]
-    hit_table['phi'] = calc_phi(hit_table['x'], hit_table['y'])
-    hit_table['phi_id'] = scale_phi(hit_table['phi'], config.nPhiSlices)
-    hit_table['z_id'], z_map = scale_z(hit_table['z'], minz= hit_table['z'].min(), maxz= hit_table['z'].max(), nbins= 10000)  #adjust min, max, bin size for optimal run time and precision  
-    hit_table.drop(columns=['y', 'volume_id', 'module_id', 'phi'], inplace=True)
-    hit_table.set_index(['layer_id', 'phi_id', 'z_id'], inplace=True)
-    
-	#return the constructed doublets
-    return doublet_making(config, hit_table, det, dataw, z_map)
+    if test_mode:
+        return doublet_making(config, spStorage, det, doubletsStorage, dataw, test_mode=True)
+		
+    doublet_making(config, spStorage, det, doubletsStorage, dataw)
+
+    # returning the results
+    return hits, spStorage, doubletsStorage
+
+
+def structures_to_doublets(hits: pd.DataFrame = None, sps: SpacepointStorage = None, ds: DoubletStorage = None):
+    return pd.DataFrame({'inner': ds.inner, 'outer': ds.outer})
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))

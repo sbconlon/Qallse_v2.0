@@ -1,3 +1,12 @@
+import numpy as np
+from numba import jitclass
+from numba import boolean, float32, int32
+
+@jitclass([
+			('type', boolean),
+			('refCoord', float32),
+			('minBound', int32),
+			('maxBound', int32)])
 class SiliconLayer:
     """
     Holds informations about a single layer, extracted from the detector geometry
@@ -32,18 +41,17 @@ class DetectorModel:
         det = DetectorModel()
         # values from the ATLAS inner detector geometry, layerIdx 0 is the innerMost pixel layer
         # order
-        det.layers = [
-            SiliconLayer(0, 32., -455, 455),  # 8-2
-            SiliconLayer(0, 72., -455, 455),  # 8-4
-            SiliconLayer(0, 116., -455, 455),  # 8-6
-            SiliconLayer(0, 172., -455, 455),  # 8-8
-
-            SiliconLayer(0, 260., -1030, 1030),  # 13-2
-            SiliconLayer(0, 360., -1030, 1030),  # 13-4
-            SiliconLayer(0, 500., -1030, 1030),  # 13-6
-            SiliconLayer(0, 660., -1030, 1030),  # 13-8
-
-            SiliconLayer(0, 820., -1030, 1030),  # 17-2
-            SiliconLayer(0, 1020., -1030, 1030),  # 17-4
-        ]
+        # 0: ltype, 1: refCoord, 2: minBound, 3: maxBound
+        det.layers = np.array([
+						[0, 32, -455, 455],  # 8-2
+						[0, 72, -455, 455],  # 8-4
+						[0, 116, -455, 455],  # 8-6
+						[0, 172, -455, 455],  # 8-8
+						[0, 260, -1030, 1030],  # 13-2
+						[0, 360, -1030, 1030],  # 13-4
+						[0, 500, -1030, 1030],  # 13-6
+						[0, 660, -1030, 1030],  # 13-8
+						[0, 820, -1030, 1030],  # 17-2
+						[0, 1020, -1030, 1030]  # 17-4
+        ], dtype='int32')
         return det

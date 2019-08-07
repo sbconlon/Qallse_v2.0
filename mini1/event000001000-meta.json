@@ -1,10 +1,10 @@
 {
-    "num_hits": 2725,
+    "num_hits": 2842,
     "num_tracks": 409,
-    "num_important_tracks": 40,
+    "num_important_tracks": 33,
     "num_noise": 651,
-    "random_seed": 1064518566,
-    "time": "2019-06-18T16:08:29.758809",
+    "random_seed": 824257407,
+    "time": "2019-07-18T10:02:53.671950",
     "params": {
         "input_path": "/home/atlas/Qallse_v2/Qallse_v2.0/src/hepqpr/qallse/dsmaker/data/event000001000",
         "output_path": ".",
@@ -15,6 +15,7 @@
         "prefix": "mini1",
         "random_seed": null,
         "phi_bounds": null,
+        "test_mode": false,
         "min_hits_per_track": 5
     }
 }
