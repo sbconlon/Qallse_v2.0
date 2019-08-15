@@ -1,63 +1,42 @@
-import numpy as np
-from .storage import *
-
+from .topology import DetectorModel
 from hepqpr.qallse.data_wrapper import * 
-from time import time
 
+from time import time
+import numpy as np
 from numba import jit, guvectorize, prange
 from numba import int64, float32, boolean
 
-def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsStorage: DoubletStorage, dataw: DataWrapper, test_mode=False):
+def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_mode=False):
 	
-	#____________________________________________#
-	#                                            #
-	#------------- Define Constants -------------#
-	#____________________________________________#
 	
-	time_event, debug = True, False
-	nHits = spStorage.x.size
-	nPhiSlices = len(spStorage.phiSlices)
-	nLayers = len(spStorage.phiSlices[0].layerBegin)
+	#------ Load Data and Define Constants
+	time_event, debug = True, True
+	nPhiSlices = 53
+	nLayers = 10
+	maxDoubletLength = 300.0
+	minDoubletLength = 10.0
+	zPlus = 150
+	zMinus = -150
+	maxEta = 2.7
+	maxTheta = 2 * np.arctan(np.exp(-maxEta))
+	maxCtg = np.cos(maxTheta) / np.sin(maxTheta) 
+	truth = pd.read_csv(truth_path, index_col=False) if truth is None else truth.copy()
+	hits = pd.read_csv(hits_path, index_col=False) if hits is None else hits.copy()
+	hit_df = hits.copy()
+	hit_df['phi_id'] = bin_phi(hit_df['x'].values, hit_df['y'].values, nPhiSlices)
+	hit_df['r'] = np.hypot(hit_df['x'].values, hit_df['y'].values)
+	hit_df.drop(columns=['x', 'y', 'z', 'volume_id', 'module_id'], inplace=True)
+	hit_df['z'] = hits['z'] # moving z column to end due to convention
+	detModel = DetectorModel.buildModel_TrackML()
+	hit_table = hit_df.values.astype(np.int64)
+	nHits = hit_table.shape[0]
 	modelLayers = np.zeros(detModel.layers.shape)
-	np.copyto(modelLayers, detModel.layers)				 
-	maxDoubletLength = constants.maxDoubletLength
-	minDoubletLength = constants.minDoubletLength
-	zPlus = constants.zPlus
-	zMinus = constants.zMinus
-	maxCtg = constants.maxCtg
+	np.copyto(modelLayers, detModel.layers)
 	FALSE_INT = 99999    #Integer that reperesents a false value
 	
-	
-	
-	#____________________________________________#
-	#                                            #
-	#------ Start Internal Helper Functions -----#
-	#____________________________________________#
-	
-	def generate_hit_table() -> np.array:
-		"""
-		This function transfers the information stored in spacepoint storage into a structured numpy array 
-		containing the information necessary for doublet making.
-		"""
-		table = np.array([spStorage.hit_id,  # 0: hit id
-		                  np.zeros(nHits),   # 1: layer id
-		                  np.zeros(nHits),   # 2: phi id
-		                  spStorage.r,       # 3: r
-		                  spStorage.z],      # 4: z
-		                  dtype=np.int64)      
 
-		for phiIdx in range(nPhiSlices):
-			for layerIdx in range(nLayers):
-				startIdx = spStorage.phiSlices[phiIdx].layerBegin[layerIdx]
-				endIdx = spStorage.phiSlices[phiIdx].layerEnd[layerIdx]
-				for idx in range(startIdx, endIdx):
-					table[1][idx] = layerIdx
-					table[2][idx] = phiIdx
-		return table.T
+	#------ Start Internal Helper Functions
 	
-	
-	
-	#@guvectorize([(int64[:, :], int64[:], int64[:], int64[:, :], boolean[:])], "(n, m),(m),(l),(l, o)->(n)", nopython=True)
 	@jit(nopython=True)
 	def filter(table, inner_hit, layer_range, z_ranges):
 		'''
@@ -96,7 +75,7 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 		
 		
 	@jit(nopython=True, parallel=True)
-	def make(approx_num_doublets=5000000):
+	def make():
 		'''
 		This function makes all possible doublets that fit the criteria of the filter. It first 
 		choses an inner hit and then iterates through the hit table looking for possible outer 
@@ -122,60 +101,53 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 		
 		return inner, outer
 			
-	#____________________________________________#
-	#                                            #
-	#------- End Internal Helper Functions ------#
-	#____________________________________________#
+
+	#------ End Internal Helper Functions
 	
 		
 	
 	
 		
-	#____________________________________________#		
-	#                                            #
-	#----------Start Main Functionality----------#
-	#____________________________________________#
+
+	#------ Start Main Functionality
 	
-	hit_table = generate_hit_table()
 	hit_table.setflags(write=False)         #make hit_table immutable
 	
 	if debug:
 		print('Hit_Table Dims: ', hit_table.shape)
-		debug_hit_table(hit_table, spStorage)
 		
 	if time_event:
 		start = time()
 	
-	doubletsStorage.inner, doubletsStorage.outer = make(approx_doublet_length(len(hit_table)))
+	inner_ids, outer_ids = make()
+	
+	doublets = pd.DataFrame({'inner': inner_ids, 'outer': outer_ids})
+	doublets.drop_duplicates(inplace=True, keep=False)
 				
 	if time_event:
 		runtime = time() - start
 		if debug:
 			print(f'RUNTIME: .../seeding/doublet_making.py  - {runtime} sec')
+			
+	if not (test_mode or debug):
+		return doublets
 		
-	#____________________________________________#
-	#                                            #
-	#---------- End Main Functionality ----------#
-	#____________________________________________#
+
+	#------ End Main Functionality 
 	
 	
 	
-			
-			
-	#____________________________________________#
-	#                                            #
-	#--------------- Start Debug ----------------#
-	#____________________________________________#
+	
+	#------ Start Debug
 	
 	if debug:
-		doublets = pd.DataFrame({'inner': doubletsStorage.inner, 'outer': doubletsStorage.outer})
-		doublets.drop_duplicates(inplace=True, keep=False)
 		print('--Grading Doublets--')
+		dataw = DataWrapper(hits, truth)
 		p, r, ms = dataw.compute_score(doublets)
 		print(f'Precision: {p}')
 		print(f'Recall: {r}')
 		print(f'Missing the following {len(ms)} doublets:')
-		'''
+		
 		for miss in ms:
 			print('-------------------------------------------------')
 			innerHit = hit_table[where(miss[0], hit_table.T[0])]
@@ -191,25 +163,19 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 			print('-------------------------------------------------')
 	
 	if test_mode:
-		doublets = pd.DataFrame({'inner': doubletsStorage.inner, 'outer': doubletsStorage.outer})
-		doublets.drop_duplicates(inplace=True, keep=False)
+		dataw = DataWrapper(hits, truth)
 		p, r, ms = dataw.compute_score(doublets)
 		doublet_making_result = [round(runtime, 2), round(r, 2), round(p, 2), doublets.shape[0]]
 		return doublet_making_result
 			
-	#____________________________________________#
-	#                                            #
-	#----------------- End Debug ----------------#
-	#____________________________________________#
+	#------ End Debug
 
 
 
 
 
-#____________________________________________#
-#                                            #
-#------ Start External Helper Functions -----#
-#____________________________________________#
+
+#------ Start External Helper Functions
 
 @jit(nopython=True)
 def filter_layers(layer_id, layer_range, verbose=False):
@@ -319,23 +285,13 @@ def append(arr, val):
 		new_arr[idx] = arr[idx]
 	new_arr[idx+1] = val
 	return new_arr
-
-def debug_hit_table(table, storage):
-	'''
-	This function iterates through the chunks and tests if the hitTable and spStorage objects
-	contain the same number of hits in each chunk.
-	'''
-	result = []
-	for phiIdx in range(len(storage.phiSlices)):
-		for layerIdx in range(len(storage.phiSlices[0].layerBegin)):
-			hitCount = 0 
-			for row in table:
-				if row[2] == phiIdx and row[1] == layerIdx:
-					hitCount += 1
-			hitsInStorage = storage.phiSlices[phiIdx].layerEnd[layerIdx] - storage.phiSlices[phiIdx].layerBegin[layerIdx]
-			result.append(hitCount == hitsInStorage)
-			hitCount = 0
-	print('Hit Table Debug: ', all(result))
+	
+def bin_phi(x, y, nbins):
+	phi = np.arctan2(y, x)
+	for idx in range(len(phi)):
+		if phi[idx] < 0:
+			phi[idx] += 2*np.pi
+	return (phi * float(nbins-1) / (2*np.pi)).astype(np.int)
 	
 
 def approx_doublet_length(nhits):
@@ -352,10 +308,8 @@ def triple_space():
 	print()
 	print()
 	
-#____________________________________________#
-#                                            #
-#------- End External Helper Functions ------#
-#____________________________________________#
+
+#------ End External Helper Functions
 
 
 

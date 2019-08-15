@@ -200,14 +200,14 @@ def create_dataset(
     # ------------ gen doublets
 
     if gen_doublets:
-        from hepqpr.qallse.seeding import generate_doublets
+        from hepqpr.qallse.seeding import doublet_making
         if test_mode:
-            dsmaker_result = generate_doublets(truth=new_truth, hits=new_hits, test_mode=True)
+            dsmaker_result = doublet_making(truth=new_truth, hits=new_hits, test_mode=True)
             dsmaker_result.append(random_seed)
             return dsmaker_result
         else:
             with open(output_path + '-doublets.csv', 'w') as f:
-                doublets_df = generate_doublets(truth=new_truth, hits=new_hits)
+                doublets_df = doublet_making(truth=new_truth, hits=new_hits)
                 doublets_df.to_csv(f, index=False)
                 logger.info(f'Doublets (len={len(doublets_df)}) generated in f{output_path}.')
                 return metadata, output_path
