@@ -9,8 +9,8 @@ from numba import int64, float32, boolean
 def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_mode=False):
 	
 	
-	#------ Load Data and Define Constants
-	time_event, debug = True, True
+	#------ Define Constants
+	time_event, debug = True, False
 	nPhiSlices = 53
 	nLayers = 10
 	maxDoubletLength = 300.0
@@ -20,19 +20,31 @@ def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_
 	maxEta = 2.7
 	maxTheta = 2 * np.arctan(np.exp(-maxEta))
 	maxCtg = np.cos(maxTheta) / np.sin(maxTheta) 
+	detModel = DetectorModel.buildModel_TrackML()
+	modelLayers = np.zeros(detModel.layers.shape)
+	np.copyto(modelLayers,detModel.layers)
+	FALSE_INT = 99999   #Integer that represents a false value
+
+        #------ Load Hit Data
 	truth = pd.read_csv(truth_path, index_col=False) if truth is None else truth.copy()
 	hits = pd.read_csv(hits_path, index_col=False) if hits is None else hits.copy()
 	hit_df = hits.copy()
-	hit_df['phi_id'] = bin_phi(hit_df['x'].values, hit_df['y'].values, nPhiSlices)
+	hit_df['phi_bin'] = bin_phi(hit_df['x'].values, hit_df['y'].values, nPhiSlices)
 	hit_df['r'] = np.hypot(hit_df['x'].values, hit_df['y'].values)
-	hit_df.drop(columns=['x', 'y', 'z', 'volume_id', 'module_id'], inplace=True)
-	hit_df['z'] = hits['z'] # moving z column to end due to convention
-	detModel = DetectorModel.buildModel_TrackML()
+	layer_bin = np.ones(hit_df.shape[0]) * FALSE_INT
+	layNoToIdx = {2: 0, 4: 1, 6: 2, 8: 3}
+	volToOffset = {8: 0, 13: 4, 17: 8}
+	counter = 0
+	for _, row in hit_df.iterrows():
+		layer_bin[counter] = layNoToIdx[row['layer_id']] + volToOffset[row['volume_id']]
+		counter += 1
+	hit_df['layer_bin'] = layer_bin
+	hit_df.drop(columns=['x', 'y', 'volume_id', 'module_id', 'layer_id'], inplace=True)
+	cols = hit_df.columns.tolist()
+	cols = [cols[0], cols[4], cols[2], cols[3], cols[1]]
+	hit_df = hit_df[cols]
 	hit_table = hit_df.values.astype(np.int64)
 	nHits = hit_table.shape[0]
-	modelLayers = np.zeros(detModel.layers.shape)
-	np.copyto(modelLayers, detModel.layers)
-	FALSE_INT = 99999    #Integer that reperesents a false value
 	
 
 	#------ Start Internal Helper Functions
