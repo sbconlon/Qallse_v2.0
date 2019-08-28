@@ -1,8 +1,11 @@
-import numpy as np
-from .storage import *
-
-from hepqpr.qallse.data_wrapper import * 
 from time import time
+
+import cupy as cp
+import numpy as np
+import pandas as pd
+
+from .storage import *
+from hepqpr.qallse.data_wrapper import * 
 
 
 def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsStorage: DoubletStorage, dataw: DataWrapper, test_mode=False):
@@ -36,25 +39,21 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 	hitTable = generate_hit_table()
 	hitTable.setflags(write=False)         #make hitTable immutable
 	
+	def struct_to_raw(arr):
+		return pd.DataFrame(arr).values
+	
+	rawHitTable = struct_to_raw(hitTable)
+	gpu_rawHitTable = cp.array(rawHitTable)
+	
 	if time_event:
 		start = time()
 	
 	if debug:
 		debug_hit_table(hitTable, spStorage)
-	
-	#Filter functions
-	filter_layers = lambda row: row['layer_id'] in layers
-	filter_phi = lambda row: ((row['phi_id'] - 1) == innerHit['phi_id'] or 
-	                          (row['phi_id'] + 1) == innerHit['phi_id'] or 
-	                           row['phi_id'] == innerHit['phi_id'] or
-	                          (row['phi_id'] == 0 and innerHit['phi_id'] == nPhiSlices - 2) or
-	                          (row['phi_id'] == nPhiSlices - 2 and innerHit['phi_id'] == 0))
-	filter_doublet_length = lambda row: ((row['r'] - innerHit['r']) < constants.maxDoubletLength) & ((row['r'] - innerHit['r']) > constants.minDoubletLength)
-	filter_horizontal_doublets = lambda row: np.abs((row['z'] - innerHit['z'])/(row['r'] - innerHit['r'])) < constants.maxCtg
-	filter_boring_hits = lambda row: row['z'] > minInterest[np.where(layers == row['layer_id'])] and row['z'] < maxInterest[np.where(layers == row['layer_id'])]
-	filter_master = lambda row: filter_layers(row) and filter_phi(row) and filter_doublet_length(row) and filter_horizontal_doublets(row) and filter_boring_hits(row)
 		
-	def get_layer_range():
+		
+	# Slight refactoring to not use global variables
+	def get_layer_range(nLayers, detModel, constants, innerHit):
 		'''
 		This function returns the list of layers that contain interesting hits, given our
 		chosen inner hit. It also returns the min/max bound for interesting hits for each range.
@@ -84,38 +83,72 @@ def doublet_making(constants, spStorage: SpacepointStorage, detModel, doubletsSt
 		maxInterest = maxInterest[mask]
 
 		return layers, maxInterest, minInterest
+	
+	# Filter function
+	def filter_table_gpu(hitTable, gpu_rawHitTable, layers, innerHit, constants, nPhiSlices):
+		"""
+		New filtering method (columnar / vectorized for GPU)
+		"""
+		filter_layers_mask = np.isin(hitTable[:, 1], layers)
+		outerHitSet = gpu_rawHitTable[filter_layers_mask]
+
+		minus_one_mask = (outerHitSet[:, 2] - 1) == innerHit[2]
+		plus_one_mask = (outerHitSet[:, 2] + 1) == innerHit[2]
+		equals_mask = outerHitSet[:, 2] == innerHit[2]
+		dual_mask = (outerHitSet[:, 2] == 0) & (innerHit[2] == nPhiSlices - 2)
+		reverse_dual_mask = (outerHitSet[:, 2] == nPhiSlices - 2) & (innerHit[2] == 0)
+		filter_phi_mask = minus_one_mask | plus_one_mask | equals_mask | dual_mask | reverse_dual_mask
+		outerHitSet = outerHitSet[filter_phi_mask]
+
+		delta_below_max = (outerHitSet[:, 3] - innerHit[3]) < constants.maxDoubletLength
+		delta_above_min = (outerHitSet[:, 3] - innerHit[3]) > constants.minDoubletLength
+		filter_doublet_length_mask = delta_below_max & delta_above_min
+		outerHitSet = outerHitSet[filter_doublet_length_mask]
+
+		filter_horizontal_doublets_mask = cp.abs((outerHitSet[:, 4] - innerHit[4]) / (outerHitSet[:, 3] - innerHit[3]))  < constants.maxCtg
+		outerHitSet = outerHitSet[filter_horizontal_doublets_mask]
+
+		gpu_minInterest = cp.array(minInterest)
+		gpu_maxInterest = cp.array(maxInterest)
+		gpu_layers = cp.array(layers)
+
+		if len(outerHitSet) == 0:
+			return outerHitSet
+
+		# substitute the for loop with a matrix op
+		x = outerHitSet[:, 1].reshape(-1, 1)            # shape: (row_num, 1)
+		gpu_layers = cp.tile(gpu_layers, (len(x), 1))
+		index = cp.where(cp.equal(gpu_layers, x))[1]
+		f_collection = gpu_minInterest[index]
+		g_collection = gpu_maxInterest[index]
+
+		boring_gt_mask = outerHitSet[:, 4] > f_collection
+		boring_lt_mask = outerHitSet[:, 4] < g_collection
+		filter_boring_hits_mask = boring_gt_mask & boring_lt_mask
+		outerHitSet = outerHitSet[filter_boring_hits_mask]
+
+		return outerHitSet
+	
+	
+	
 			
 	indxCount = 0
 	for innerHit in hitTable:
 		
 		#Get the layers of interest for our inner hit
-		layers, maxInterest, minInterest = get_layer_range()
+		layers, maxInterest, minInterest = get_layer_range(nLayers, detModel, constants, innerHit)
 		
-		'''
-		#Filter hits in uninteresting layers
-		outerHitSet = np.array([hit for hit in hitTable[indxCount:] if filter_layers(hit)])
+		# Filter on GPU
+		res_new_gpu = filter_table_gpu(rawHitTable[indxCount:], gpu_rawHitTable[indxCount:],
+                                   layers, innerHit, constants, nPhiSlices)
 		
-		#Filter hits in phi slices that are not in +/- one phi slice of the inner hit
-		outerHitSet = np.array([hit for hit in outerHitSet if filter_phi(hit)])
-		
-		#Filter hits that yeild doublets that are too long or too short
-		outerHitSet = np.array([hit for hit in outerHitSet if filter_doublet_length(hit)])
-		
-		#Filter hits that yeild doublets that are too horizontal
-		outerHitSet = np.array([hit for hit in outerHitSet if filter_horizontal_doublets(hit)])
-		
-		#Filter hits outside of the zone of interest
-		outerHitSet = np.array([hit for hit in outerHitSet if filter_boring_hits(hit)])
-		'''
-		
-		outerHitSet = np.array([hit for hit in hitTable[indxCount:] if filter_master(hit)])
-		
-		for outerHit in outerHitSet:
-			doubletsStorage.inner.append(innerHit['hit_id'])
-			doubletsStorage.outer.append(outerHit['hit_id'])
-		
+		for outerHit in res_new_gpu.get(): # bringing to host all at once is the cheapest way
+			doubletsStorage.inner.append(innerHit[0])
+			doubletsStorage.outer.append(outerHit[0])
+			
 		indxCount += 1
-       
+
+        
 	if time_event:
 		runtime = time() - start
 		if debug:
@@ -168,6 +201,4 @@ def triple_space():
 	print()
 	print()
 	print()
-
-
 
