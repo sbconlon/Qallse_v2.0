@@ -126,7 +126,7 @@ def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_
 		refCoords = np.array([modelLayers[layer_idx][1] for layer_idx in range(nLayers)], dtype=int64)
 
 		#Get the list of all valid layers
-		layer_range = np.array([inner_hit[1] + 2, inner_hit[1] + 1, inner_hit[1] - 1, inner_hit[1] - 2])
+		layer_range = np.array([inner_hit[1] + 2, inner_hit[1] + 1, inner_hit[1] - 1, inner_hit[1] - 2], dtype=int64)
 
 		#Find the z bounds for each valid layer
 		z_ranges = get_z_ranges(inner_hit, refCoords, layer_range, zMinus, zPlus, FALSE_INT) 
