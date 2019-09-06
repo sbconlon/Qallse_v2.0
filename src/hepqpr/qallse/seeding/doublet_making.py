@@ -6,6 +6,8 @@ import numpy as np
 from numba import jit, guvectorize, prange
 from numba import int64, float32, boolean
 
+import cudf
+
 def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_mode=False):
 	
 	
@@ -25,7 +27,7 @@ def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_
 	np.copyto(modelLayers,detModel.layers)
 	FALSE_INT = 99999   #Integer that represents a false value
 
-        #------ Load Hit Data
+    #------ Load Hit Data
 	truth = pd.read_csv(truth_path, index_col=False) if truth is None else truth.copy()
 	hits = pd.read_csv(hits_path, index_col=False) if hits is None else hits.copy()
 	hit_df = hits.copy()
@@ -41,27 +43,54 @@ def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_
 	hit_df['layer_bin'] = layer_bin
 	hit_df.drop(columns=['x', 'y', 'volume_id', 'module_id', 'layer_id'], inplace=True)
 	cols = hit_df.columns.tolist()
-	cols = [cols[0], cols[4], cols[2], cols[3], cols[1]]
+	cols = [cols[0],    #0:  Hit ID
+	        cols[4],    #1:  Layer ID
+	        cols[2],    #2:  Phi ID
+	        cols[3],    #3:  R
+	        cols[1]]    #4:  Z
 	hit_df = hit_df[cols]
-	hit_table = hit_df.values.astype(np.int64)
-	nHits = hit_table.shape[0]
+	#hit_table = hit_df.values.astype(np.int64)
+	nHits = hit_df.shape[0]
 	
 
 	#------ Start Internal Helper Functions
+    def filter_kernel(in1, in2, in3, in4, out1, i_hit, l_range, z_ranges, maxctg):
+		'''
+		This function defines a rowise gpu operation through the hit table which returns a boolean array cooresponding to 
+		whether or not the inner/outer hit combo forms a valid doublet
+		'''
+		#Define constants
+		NPHISLICES = 53
+		MAXDOUBLETLENGTH = 300.0
+		MINDOUBLETLENGTH = 10.0
+		for i, (layer, phi, r, z) in enumerate(zip(in1, in2, in3, in4)):
+		    out1 = ((layer in l_range) and    #filter_layers
+		           ((phi - 1) == i_hit[2] or     #filter_phi
+		            (phi + 1) == i_hit[2] or
+		             phi == i_hit[2]      or 
+		            (phi == 0 and i_hit[2] == NPHISLICES -2) or
+		            (phi == nPhiSlices -2 and i_hit[2] == 0)) and
+		            (((r - i_hit[3]) < MAXDOUBLETLENGTH) and ((r - i_hit[3]) > MINDOUBLETLENGTH)) and #filter_doublet_length
+		            (abs((z - i_hit[4])/(r - i_hit[3])) < maxctg) and    #filter_horizontal_doublets
+		            (z > z_ranges[layer][0] and z < z_ranges[layer][1])) #filter_z
+		
+		
+		
+		
 	
-	@jit(nopython=True)
-	def filter(table, inner_hit, layer_range, z_ranges):
-		'''
-		This function combines the helper filters into one filter and is compiled by numba into a general numpy universal function
-		'''
-		keep = np.array([True] * table.shape[0])
-		for row_idx in range(table.shape[0]):
-			keep[row_idx] = (filter_layers(table[row_idx][1], layer_range) and
-		                     filter_phi(inner_hit[2], table[row_idx][2], nPhiSlices) and
-		                     filter_doublet_length(inner_hit[3], table[row_idx][3], minDoubletLength, maxDoubletLength) and
-		                     filter_horizontal_doublets(inner_hit[3], inner_hit[4], table[row_idx][3], table[row_idx][4], maxCtg) and
-		                     filter_z(table[row_idx][1], table[row_idx][4], layer_range, z_ranges))
-		return keep
+    def filter(table, inner_hit, layer_range, z_ranges):
+        '''
+        CPU implementation of filter function. Returns a boolean array corresponding to the outer hits in table that correspond
+        to valid inner/outer hit pairs.
+        '''
+        keep = np.array([True] * table.shape[0])
+        for row_idx in range(table.shape[0]):
+            keep[row_idx] = (filter_layers(table[row_idx][1], layer_range) and
+            		         filter_phi(inner_hit[2], table[row_idx][2], nPhiSlices) and
+            		         filter_doublet_length(inner_hit[3], table[row_idx][3], minDoubletLength, maxDoubletLength) and
+            		         filter_horizontal_doublets(inner_hit[3], inner_hit[4], table[row_idx][3], table[row_idx][4], maxCtg) and
+            		         filter_z(table[row_idx][1], table[row_idx][4], layer_range, z_ranges))
+        return keep
 
 
 
@@ -112,6 +141,38 @@ def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_
 				inner[(row_count * ncolumns + col_count)] = hit_table[row_count][0]
 		
 		return inner, outer
+		
+	
+		
+	def gpu_make():
+	    '''
+	    GPU implementation of make function above.
+	    '''
+	    ncolumns = int(nHits * 0.01)
+		outer_2D = np.zeros((nHits, ncolumns), dtype=int64)
+
+        gpu_df = cudf.DataFrame.from_pandas(hit_df)
+		
+		for row_idx in prange(nHits):
+			inner_hit = hit_df.iloc(row_idx).values
+			layer_range, z_ranges = get_valid_ranges(inner_hit)
+			
+			outer_hit_set = gpu_df.apply_rows(filter_kernel,
+			                                  incols=['layer_bin', 'phi_bin', 'r', 'z'],
+			                                  outcols=dict(out1=np.bool)
+			                                  kwargs=dict(i_hit=inner_hit, l_range=layer_range, z_ranges=z_ranges, maxctg=maxCtg)) 
+			
+			for column_idx in prange(len(outer_hit_set)):
+				outer_2D[row_idx][column_idx] = outer_hit_set[column_idx]
+		
+		
+		outer = np.reshape(outer_2D, (1, nHits * ncolumns))[0]
+		inner = np.zeros(len(outer), dtype=int64)
+		for row_count in prange(outer_2D.shape[0]):
+			for col_count in prange(ncolumns):	
+				inner[(row_count * ncolumns + col_count)] = hit_table[row_count][0]
+		
+		return inner, outer
 			
 
 	#------ End Internal Helper Functions
@@ -126,12 +187,12 @@ def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_
 	hit_table.setflags(write=False)         #make hit_table immutable
 	
 	if debug:
-		print('Hit_Table Dims: ', hit_table.shape)
+		print('Hit_Table Dims: ', hit_df.shape)
 		
 	if time_event:
 		start = time()
 	
-	inner_ids, outer_ids = make()
+	inner_ids, outer_ids = gpu_make()
 	
 	doublets = pd.DataFrame({'inner': inner_ids, 'outer': outer_ids})
 	doublets.drop_duplicates(inplace=True, keep=False)

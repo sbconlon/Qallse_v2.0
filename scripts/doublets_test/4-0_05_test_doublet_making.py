@@ -33,7 +33,7 @@ if __name__ == '__main__':
 	stats = pd.DataFrame(results, columns=titles)
 	print('--> Stats')
 	print(stats)
-	stats.to_csv('05_parallel_results.csv', index=False)
+	stats.to_csv('05_gpu_applyrows_results.csv', index=False)
 		
 		
 			
