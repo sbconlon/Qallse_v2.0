@@ -179,6 +179,7 @@ def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_
 		
 		for row_idx in prange(nHits):
 			inner_hit = hit_df.iloc[[row_idx]].values
+			print('inner_hit: ', inner_hit.astype(np.int64))
 			layer_range, z_ranges = get_valid_ranges(inner_hit.astype(np.int64))
 			
 			outer_hit_set = gpu_df.apply_rows(filter_kernel,
