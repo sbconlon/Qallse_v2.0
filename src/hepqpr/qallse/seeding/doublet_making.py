@@ -149,7 +149,7 @@ def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_
 		GPU implementation of make function above.
 		'''
 		ncolumns = int(nHits * 0.01)
-		outer_2D = np.zeros((nHits, ncolumns), dtype=int64)
+		outer_2D = np.zeros((nHits, ncolumns), dtype=np.int64)
 
 		gpu_df = cudf.DataFrame.from_pandas(hit_df)
 		
