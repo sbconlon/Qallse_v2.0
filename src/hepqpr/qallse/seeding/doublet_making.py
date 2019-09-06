@@ -125,6 +125,8 @@ def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_
 		#Get the radius of each layer
 		refCoords = np.array([modelLayers[layer_idx][1] for layer_idx in range(nLayers)], dtype=int64)
 
+		print('INNER_HIT: ', inner_hit)
+
 		#Get the list of all valid layers
 		layer_range = np.array([inner_hit[1] + 2, inner_hit[1] + 1, inner_hit[1] - 1, inner_hit[1] - 2], dtype=int64)
 
