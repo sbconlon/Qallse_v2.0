@@ -54,7 +54,7 @@ def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_
 	
 
 	#------ Start Internal Helper Functions
-    def filter_kernel(in1, in2, in3, in4, out1, i_hit, l_range, z_ranges, maxctg):
+	def filter_kernel(in1, in2, in3, in4, out1, i_hit, l_range, z_ranges, maxctg):
 		'''
 		This function defines a rowise gpu operation through the hit table which returns a boolean array cooresponding to 
 		whether or not the inner/outer hit combo forms a valid doublet
@@ -78,19 +78,19 @@ def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_
 		
 		
 	
-    def filter(table, inner_hit, layer_range, z_ranges):
-        '''
-        CPU implementation of filter function. Returns a boolean array corresponding to the outer hits in table that correspond
-        to valid inner/outer hit pairs.
-        '''
-        keep = np.array([True] * table.shape[0])
-        for row_idx in range(table.shape[0]):
-            keep[row_idx] = (filter_layers(table[row_idx][1], layer_range) and
-            		         filter_phi(inner_hit[2], table[row_idx][2], nPhiSlices) and
-            		         filter_doublet_length(inner_hit[3], table[row_idx][3], minDoubletLength, maxDoubletLength) and
-            		         filter_horizontal_doublets(inner_hit[3], inner_hit[4], table[row_idx][3], table[row_idx][4], maxCtg) and
-            		         filter_z(table[row_idx][1], table[row_idx][4], layer_range, z_ranges))
-        return keep
+	def filter(table, inner_hit, layer_range, z_ranges):
+		'''
+		CPU implementation of filter function. Returns a boolean array corresponding to the outer hits in table that correspond
+		to valid inner/outer hit pairs.
+		'''
+		keep = np.array([True] * table.shape[0])
+		for row_idx in range(table.shape[0]):
+			keep[row_idx] = (filter_layers(table[row_idx][1], layer_range) and
+							 filter_phi(inner_hit[2], table[row_idx][2], nPhiSlices) and
+							 filter_doublet_length(inner_hit[3], table[row_idx][3], minDoubletLength, maxDoubletLength) and
+							 filter_horizontal_doublets(inner_hit[3], inner_hit[4], table[row_idx][3], table[row_idx][4], maxCtg) and
+							 filter_z(table[row_idx][1], table[row_idx][4], layer_range, z_ranges))
+		return keep
 
 
 
@@ -145,22 +145,22 @@ def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_
 	
 		
 	def gpu_make():
-	    '''
-	    GPU implementation of make function above.
-	    '''
-	    ncolumns = int(nHits * 0.01)
+		'''
+		GPU implementation of make function above.
+		'''
+		ncolumns = int(nHits * 0.01)
 		outer_2D = np.zeros((nHits, ncolumns), dtype=int64)
 
-        gpu_df = cudf.DataFrame.from_pandas(hit_df)
+		gpu_df = cudf.DataFrame.from_pandas(hit_df)
 		
 		for row_idx in prange(nHits):
 			inner_hit = hit_df.iloc(row_idx).values
 			layer_range, z_ranges = get_valid_ranges(inner_hit)
 			
 			outer_hit_set = gpu_df.apply_rows(filter_kernel,
-			                                  incols=['layer_bin', 'phi_bin', 'r', 'z'],
-			                                  outcols=dict(out1=np.bool)
-			                                  kwargs=dict(i_hit=inner_hit, l_range=layer_range, z_ranges=z_ranges, maxctg=maxCtg)) 
+											  incols=['layer_bin', 'phi_bin', 'r', 'z'],
+											  outcols=dict(out1=np.bool),
+											  kwargs=dict(i_hit=inner_hit, l_range=layer_range, z_ranges=z_ranges, maxctg=maxCtg)) 
 			
 			for column_idx in prange(len(outer_hit_set)):
 				outer_2D[row_idx][column_idx] = outer_hit_set[column_idx]
