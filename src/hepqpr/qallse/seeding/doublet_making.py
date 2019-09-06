@@ -93,7 +93,29 @@ def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_
 		return keep
 
 
+	'''
+	@jit(nopython=True)
+	def get_valid_ranges(inner_hit):
+		
+		This function returns the list of layers that contain interesting hits, given our chosen inner hit. 
+		It also returns the min/max bound in the z-direction for interesting hits for each outer layer.
+		
+		#Get the radius of each layer
+		refCoords = np.array([modelLayers[layer_idx][1] for layer_idx in range(nLayers)], dtype=int64)
 
+		#Get the list of all valid layers
+		layer_range = get_layer_range(inner_hit, refCoords, nLayers, maxDoubletLength, FALSE_INT)
+
+		#Find the z bounds for each valid layer
+		z_ranges = get_z_ranges(inner_hit, refCoords, layer_range, zMinus, zPlus, FALSE_INT) 
+
+		#Filter layers whose bounds of interest fall outside their geometric bounds 
+		z_mask(layer_range, z_ranges, modelLayers, FALSE_INT)
+
+		return layer_range, z_ranges
+	'''
+		
+		
 	@jit(nopython=True)
 	def get_valid_ranges(inner_hit):
 		'''
@@ -274,7 +296,7 @@ def filter_horizontal_doublets(inner_r, inner_z, outer_r, outer_z, maxCtg):
 def filter_z(outer_layer, outer_z, layer_range, z_ranges):
 	return (outer_z > z_ranges[outer_layer][0] and outer_z < z_ranges[outer_layer][1])
 	
-@jit(nopython=True)
+#@jit(nopython=True)
 def get_layer_range(inner_hit, layer_radii, nLayers, maxDoubletLength, FALSE_INT):
 	'''
 	This function, given a inner hit, returns a list of layers that may contain valid outer hits
