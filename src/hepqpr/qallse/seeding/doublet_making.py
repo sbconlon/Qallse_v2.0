@@ -296,18 +296,16 @@ def filter_horizontal_doublets(inner_r, inner_z, outer_r, outer_z, maxCtg):
 def filter_z(outer_layer, outer_z, layer_range, z_ranges):
 	return (outer_z > z_ranges[outer_layer][0] and outer_z < z_ranges[outer_layer][1])
 	
-#@jit(nopython=True)
+@jit(nopython=True)
 def get_layer_range(inner_hit, layer_radii, nLayers, maxDoubletLength, FALSE_INT):
 	'''
 	This function, given a inner hit, returns a list of layers that may contain valid outer hits
 	'''
-	valid_layers = []
+	valid_layers = np.arange(nLayers)
 	for layer_id in range(nLayers):
-		if (layer_id == inner_hit[1]+1 or layer_id == inner_hit[1]+2 or
-		    layer_id == inner_hit[1]-1 or layer_id == inner_hit[1]-2):
-			valid_layers.append(layer_id)
-		else:
-			valid_layers.append(FALSE_INT)
+		if not (layer_id == inner_hit[1]+1 or layer_id == inner_hit[1]+2 or
+				layer_id == inner_hit[1]-1 or layer_id == inner_hit[1]-2):
+			valid_layers[layer_id] = FALSE_INT
 	return valid_layers
 	
 @jit(nopython=True)
