@@ -184,7 +184,7 @@ def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_
 
 	#------ Start Main Functionality
 	
-	hit_table.setflags(write=False)         #make hit_table immutable
+	#hit_table.setflags(write=False)         #make hit_table immutable
 	
 	if debug:
 		print('Hit_Table Dims: ', hit_df.shape)
