@@ -54,7 +54,7 @@ def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_
 	
 
 	#------ Start Internal Helper Functions
-	def filter_kernel(in1, in2, in3, in4, out1, i_hit, l_range, z_ranges, maxctg):
+	def filter_kernel(layer_bin, phi_bin, r, z, out1, i_hit, l_range, z_ranges, maxctg):
 		'''
 		This function defines a rowise gpu operation through the hit table which returns a boolean array cooresponding to 
 		whether or not the inner/outer hit combo forms a valid doublet
@@ -125,8 +125,6 @@ def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_
 		#Get the radius of each layer
 		refCoords = np.array([modelLayers[layer_idx][1] for layer_idx in range(nLayers)], dtype=int64)
 
-		print('INNER_HIT: ', inner_hit)
-
 		#Get the list of all valid layers
 		layer_range = np.array([inner_hit[1] + 2, inner_hit[1] + 1, inner_hit[1] - 1, inner_hit[1] - 2], dtype=int64)
 
@@ -179,8 +177,9 @@ def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_
 		
 		for row_idx in prange(nHits):
 			inner_hit = hit_df.iloc[[row_idx]].values[0]
-			print('inner_hit: ', inner_hit.astype(np.int64))
 			layer_range, z_ranges = get_valid_ranges(inner_hit.astype(np.int64))
+			
+			print(hit_df.columns)
 			
 			outer_hit_set = gpu_df.apply_rows(filter_kernel,
 											  incols=['layer_bin', 'phi_bin', 'r', 'z'],
