@@ -64,7 +64,14 @@ def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_
 		MAXDOUBLETLENGTH = 300.0
 		MINDOUBLETLENGTH = 10.0
 		
-		for i, (layer, phi) in enumerate(zip(layer_bin, phi_bin)):
+		#Define zip
+		def cuda_zip(lst1, lst2, lst3, lst4):
+			zip_lst = []
+			for i in range(len(lst1)):
+				zip_lst.append([lst1, lst2, lst3, lst4])
+			return zip_lst
+		
+		for i, (layer, phi, rr, zz) in enumerate(cuda_zip(layer_bin, phi_bin, r, z)):
 		    out1[i] = ((layer in l_range) and    #filter_layers
 		              ((phi - 1) == i_hit[2] or  
 		               (phi + 1) == i_hit[2] or
