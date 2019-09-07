@@ -63,16 +63,16 @@ def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_
 		NPHISLICES = 53
 		MAXDOUBLETLENGTH = 300.0
 		MINDOUBLETLENGTH = 10.0
-		for i, (layer, phi, r, z) in enumerate(zip(in1, in2, in3, in4)):
+		for i, (layer, phi, rr, zz) in enumerate(zip(layer_bin, phi_bin, r, z)):
 		    out1 = ((layer in l_range) and    #filter_layers
-		           ((phi - 1) == i_hit[2] or     #filter_phi
+		           ((phi - 1) == i_hit[2] or  #filter_phi
 		            (phi + 1) == i_hit[2] or
 		             phi == i_hit[2]      or 
 		            (phi == 0 and i_hit[2] == NPHISLICES -2) or
 		            (phi == nPhiSlices -2 and i_hit[2] == 0)) and
-		            (((r - i_hit[3]) < MAXDOUBLETLENGTH) and ((r - i_hit[3]) > MINDOUBLETLENGTH)) and #filter_doublet_length
-		            (abs((z - i_hit[4])/(r - i_hit[3])) < maxctg) and    #filter_horizontal_doublets
-		            (z > z_ranges[layer][0] and z < z_ranges[layer][1])) #filter_z
+		            (((rr - i_hit[3]) < MAXDOUBLETLENGTH) and ((rr - i_hit[3]) > MINDOUBLETLENGTH)) and #filter_doublet_length
+		            (abs((zz - i_hit[4])/(rr - i_hit[3])) < maxctg) and    #filter_horizontal_doublets
+		            (zz > z_ranges[layer][0] and zz < z_ranges[layer][1])) #filter_z
 		
 		
 		
