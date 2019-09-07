@@ -66,7 +66,7 @@ def doublet_making(truth_path=None, hits_path=None, truth=None, hits=None, test_
 		
 		#Define zip
 		def cuda_zip(lst1, lst2, lst3, lst4):
-			zip_lst = [0] * len(lst1)
+			zip_lst = np.zeros(len(lst1))
 			for i in range(len(lst1)):
 				zip_lst[i] = [lst1, lst2, lst3, lst4]
 			return zip_lst
