@@ -1,0 +1,62 @@
+--> Testing doublet_making with 0.05 density
+( 2767 ,  27 )
+--> Testing doublet_making with 0.1 density
+( 5443 ,  54 )
+--> Testing doublet_making with 0.15 density
+( 8320 ,  83 )
+--> Testing doublet_making with 0.2 density
+( 11144 ,  111 )
+--> Testing doublet_making with 0.25 density
+( 13893 ,  138 )
+--> Testing doublet_making with 0.3 density
+( 16723 ,  167 )
+--> Testing doublet_making with 0.35 density
+( 19082 ,  190 )
+--> Testing doublet_making with 0.4 density
+( 22407 ,  224 )
+--> Testing doublet_making with 0.45 density
+( 24749 ,  247 )
+--> Testing doublet_making with 0.5 density
+( 27590 ,  275 )
+--> Testing doublet_making with 0.55 density
+( 30474 ,  304 )
+--> Testing doublet_making with 0.6 density
+( 33316 ,  333 )
+--> Testing doublet_making with 0.65 density
+( 36053 ,  360 )
+--> Testing doublet_making with 0.7 density
+( 38974 ,  389 )
+--> Testing doublet_making with 0.75 density
+( 41568 ,  415 )
+--> Testing doublet_making with 0.8 density
+( 44239 ,  442 )
+--> Testing doublet_making with 0.85 density
+( 47204 ,  472 )
+--> Testing doublet_making with 0.9 density
+( 49826 ,  498 )
+--> Testing doublet_making with 0.95 density
+( 52612 ,  526 )
+--> Testing doublet_making with 1.0 density
+( 55446 ,  554 )
+--> Stats
+    density  runtime  recall  precision  doublets_made       seed
+0      0.05     8.04    0.99       0.02          13330  495770806
+1      0.10     2.84    0.99       0.01          48511  188257569
+2      0.15     2.97    1.00       0.01         111662  176904716
+3      0.20     3.15    1.00       0.01         202350  872454724
+4      0.25     3.30    0.99       0.00         301039  694899005
+5      0.30     3.47    0.98       0.00         443151  631401112
+6      0.35     3.51    0.99       0.00         573103  118417488
+7      0.40     3.79    0.99       0.00         790605   82044116
+8      0.45     4.00    0.99       0.00         964222  555792237
+9      0.50     3.59    0.99       0.00        1189063   40180631
+10     0.55     3.82    0.99       0.00        1442088  108147605
+11     0.60     4.02    0.99       0.00        1722881  763119314
+12     0.65     4.25    0.99       0.00        2018129  217040323
+13     0.70     4.53    0.99       0.00        2381099   51955791
+14     0.75     4.75    0.99       0.00        2691410  537539969
+15     0.80     5.03    0.99       0.00        3043434  240094815
+16     0.85     5.33    0.99       0.00        3488339  508377140
+17     0.90     5.64    0.99       0.00        3871596  469828867
+18     0.95     5.98    0.99       0.00        4301243  712248383
+19     1.00     6.31    0.99       0.00        4782858  911834714

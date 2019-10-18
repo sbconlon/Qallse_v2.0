@@ -1,0 +1,10 @@
+./4-0_55_test_doublet_making.py
+./4-0_6_test_doublet_making.py
+./4-0_65_test_doublet_making.py
+./4-0_7_test_doublet_making.py
+./4-0_75_test_doublet_making.py
+./4-0_8_test_doublet_making.py
+./4-0_85_test_doublet_making.py
+./4-0_9_test_doublet_making.py
+./4-0_95_test_doublet_making.py
+./4-1_00_test_doublet_making.py
