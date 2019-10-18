@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Union
 
 from numba import jit, prange
-from numba.typed import List, Dict
+from numba.typed import List, Dict, Set
 import math
 
 import pandas as pd
@@ -293,7 +293,7 @@ class QallseBase(ABC):
     def sort_doublets(hits, doublets):
         print('Starting...')
         Factor = 0.01
-        dplet_grouping = [set() for _ in range(hits.shape[0])]
+        dplet_grouping = [Set() for _ in range(hits.shape[0])]
         for di in prange(doublets.shape[0]):
             dplet_grouping[doublets[di, 0]].add(doublets[di])
             dplet_grouping[doublets[di, 1]].add(doublets[di])
