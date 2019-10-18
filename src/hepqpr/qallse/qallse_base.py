@@ -87,7 +87,7 @@ class QallseBase(ABC):
 
 
 
-    def build_model(self, doublets: Union[pd.DataFrame, List, np.array]):
+    def build_model(self, doublets: Union[pd.DataFrame, List, np.array], test_mode=False):
         """
         Do the preprocessing, i.e. prepare everything so the QUBO can be generated.
         This includes creating the structures (hits, doublets, triplets, quadruplets) and computing the weights.
