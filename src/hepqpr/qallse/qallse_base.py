@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Union
 
 from numba import jit, prange
-#from numba.typed import List, Dict
+from numba.typed import List, Dict
 import math
 
 import pandas as pd
@@ -15,9 +15,9 @@ from .other.stdout_redirect import capture_stdout
 
 from .data_structures import *
 from .data_wrapper import DataWrapper
-<<<<<<< HEAD
+
 from .utils import tracks_to_xplets, curvature, angle_diff
-=======
+
 from .utils import tracks_to_xplets
 
 
