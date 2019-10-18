@@ -293,10 +293,10 @@ class QallseBase(ABC):
     def sort_doublets(hits, doublets):
         print('Starting...')
         Factor = 0.01
-        dplet_grouping = [Set() for _ in range(hits.shape[0])]
+        dplet_grouping = [List() for _ in range(hits.shape[0])]
         for di in prange(doublets.shape[0]):
-            dplet_grouping[doublets[di, 0]].add(doublets[di])
-            dplet_grouping[doublets[di, 1]].add(doublets[di])
+            dplet_grouping[doublets[di, 0]].append(doublets[di])
+            dplet_grouping[doublets[di, 1]].append(doublets[di])
         print('Finished')
             
     
