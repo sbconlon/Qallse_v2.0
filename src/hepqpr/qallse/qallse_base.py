@@ -4,9 +4,12 @@ import sys
 import time
 from abc import ABC, abstractmethod
 from typing import Union
+<<<<<<< HEAD
 from numba import jit, prange
 #from numba.typed import List, Dict
 import math
+=======
+>>>>>>> d13f4cc5c42da21ada7f5b3c42fa8e3c65fc5308
 
 import pandas as pd
 from dwave_qbsolv import QBSolv
@@ -14,7 +17,11 @@ from .other.stdout_redirect import capture_stdout
 
 from .data_structures import *
 from .data_wrapper import DataWrapper
+<<<<<<< HEAD
 from .utils import tracks_to_xplets, curvature, angle_diff
+=======
+from .utils import tracks_to_xplets
+>>>>>>> d13f4cc5c42da21ada7f5b3c42fa8e3c65fc5308
 
 
 class ConfigBase(ABC):
@@ -81,7 +88,11 @@ class QallseBase(ABC):
         # [ABSTRACT] Return an instance of a subclass of `ConfigBase` holding all model parameters
         pass
 
+<<<<<<< HEAD
     def build_model(self, doublets: Union[pd.DataFrame, List, np.array], test_mode=False, compare=False):
+=======
+    def build_model(self, doublets: Union[pd.DataFrame, List, np.array]):
+>>>>>>> d13f4cc5c42da21ada7f5b3c42fa8e3c65fc5308
         """
         Do the preprocessing, i.e. prepare everything so the QUBO can be generated.
         This includes creating the structures (hits, doublets, triplets, quadruplets) and computing the weights.
@@ -89,6 +100,7 @@ class QallseBase(ABC):
         :param doublets: the input doublets
         :return: self (for chaining)
         """
+<<<<<<< HEAD
         self.hard_cuts_stats = self.hard_cuts_stats[:1]
         
         # --- Reformat hits DataFrame to Array
@@ -150,12 +162,28 @@ class QallseBase(ABC):
             return 0
 		
         '''
+=======
+        start_time = time.process_time()
+        self.hard_cuts_stats = self.hard_cuts_stats[:1]
+
+        initial_doublets = doublets.values if isinstance(doublets, pd.DataFrame) else doublets
+
+        self._create_doublets(initial_doublets)
+        self._create_triplets()
+        self._create_quadruplets()
+
+        end_time = time.process_time() - start_time
+
+>>>>>>> d13f4cc5c42da21ada7f5b3c42fa8e3c65fc5308
         self.logger.info(
             f'Model built in {end_time:.2f}s. '
             f'doublets: {len(self.doublets)}/{len(self.qubo_doublets)}, '
             f'triplets: {len(self.triplets)}/{len(self.qubo_triplets)}, '
             f'quadruplets: {len(self.quadruplets)}')
+<<<<<<< HEAD
         '''
+=======
+>>>>>>> d13f4cc5c42da21ada7f5b3c42fa8e3c65fc5308
 
         return self
 
@@ -210,6 +238,7 @@ class QallseBase(ABC):
         # Generate Doublet structures from the initial doublets, calling _is_invalid_doublet to apply early cuts
         doublets = []
         for (start_id, end_id) in initial_doublets:
+<<<<<<< HEAD
             if not(start_id == 0 or end_id == 0):
                 start, end = self.hits[start_id], self.hits[end_id]
                 d = Doublet(start, end)
@@ -217,17 +246,31 @@ class QallseBase(ABC):
                     start.outer.append(d)
                     end.inner.append(d)
                     doublets.append(d)
+=======
+            start, end = self.hits[start_id], self.hits[end_id]
+            d = Doublet(start, end)
+            if not self._is_invalid_doublet(d):
+                start.outer.append(d)
+                end.inner.append(d)
+                doublets.append(d)
+>>>>>>> d13f4cc5c42da21ada7f5b3c42fa8e3c65fc5308
 
         self.logger.info(f'created {len(doublets)} doublets.')
         self.doublets = doublets
 
+<<<<<<< HEAD
 	
+=======
+>>>>>>> d13f4cc5c42da21ada7f5b3c42fa8e3c65fc5308
     @abstractmethod
     def _is_invalid_doublet(self, dblet: Doublet) -> bool:
         # [ABSTRACT] Apply early cuts on doublets, return True if the doublet should be discarded.
         pass
 
+<<<<<<< HEAD
     
+=======
+>>>>>>> d13f4cc5c42da21ada7f5b3c42fa8e3c65fc5308
     def _create_triplets(self):
         # Generate Triplet structures from Doublets, calling _is_invalid_triplet to apply early cuts
         triplets = []
@@ -240,6 +283,7 @@ class QallseBase(ABC):
                     triplets.append(t)
         self.logger.info(f'created {len(triplets)} triplets.')
         self.triplets = triplets
+<<<<<<< HEAD
     
     
     def _parallel_create_triplets(self, hits, doublets):
@@ -341,6 +385,8 @@ class QallseBase(ABC):
             return True
         return False    
     '''
+=======
+>>>>>>> d13f4cc5c42da21ada7f5b3c42fa8e3c65fc5308
 
     @abstractmethod
     def _is_invalid_triplet(self, tplet: Triplet) -> bool:
@@ -456,6 +502,7 @@ class QallseBase(ABC):
             return Q, (n_vars, n_incl_couplers, n_excl_couplers)
         else:
             return Q
+<<<<<<< HEAD
 
 
 
@@ -502,3 +549,5 @@ def where(lst, val):
             
             
             
+=======
+>>>>>>> d13f4cc5c42da21ada7f5b3c42fa8e3c65fc5308

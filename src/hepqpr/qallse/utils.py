@@ -3,7 +3,10 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
+<<<<<<< HEAD
 from numba import jit
+=======
+>>>>>>> d13f4cc5c42da21ada7f5b3c42fa8e3c65fc5308
 
 from .type_alias import *
 
@@ -98,13 +101,21 @@ def angle_between(v1, v2):
     v2_u = v2 / np.linalg.norm(v2)
     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
+<<<<<<< HEAD
 @jit(nopython=True)
+=======
+
+>>>>>>> d13f4cc5c42da21ada7f5b3c42fa8e3c65fc5308
 def angle_diff(angle1, angle2):
     """Compute the absolute difference between to angles in radiant. The result is between [0, π]. """
     delta_angle = abs(angle2 - angle1)
     return delta_angle if delta_angle <= np.pi else 2 * np.pi - delta_angle
 
+<<<<<<< HEAD
 @jit(nopython=True)
+=======
+
+>>>>>>> d13f4cc5c42da21ada7f5b3c42fa8e3c65fc5308
 def curvature(p0, p1, p2):
     """Compute the `Menger curvature <https://en.wikipedia.org/wiki/Menger_curvature>`_ between three
     3D points. """
