@@ -120,14 +120,14 @@ class Doublet(Xplet):
         Create a doublet.
         """
         assert hit_start != hit_end
-<<<<<<< HEAD
+
         if not hit_start.r <= hit_end.r:
             temp = hit_start
             hit_start = hit_end
             hit_end = temp
-=======
+
         assert hit_start.r <= hit_end.r
->>>>>>> d13f4cc5c42da21ada7f5b3c42fa8e3c65fc5308
+
 
         super().__init__([hit_start, hit_end], Triplet)
         #: The hits composing this doublet
