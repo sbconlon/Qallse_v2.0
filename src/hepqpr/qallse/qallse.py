@@ -110,10 +110,7 @@ class Qallse(QallseBase):
         # * the number of layer miss
         # * the radius of the curvature formed by the three hits (cut on GeV)
         # * how well are the two doublets aligned in the R-Z plane
-<<<<<<< HEAD
-=======
 
->>>>>>> d13f4cc5c42da21ada7f5b3c42fa8e3c65fc5308
         is_real = self.dataw.is_real_xplet(tplet.hit_ids()) == XpletType.REAL
 
         # layer skips
