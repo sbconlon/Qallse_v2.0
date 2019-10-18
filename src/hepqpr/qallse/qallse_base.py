@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Union
 
 from numba import jit, prange
-from numba.typed import List, Dict, Set
+from numba.typed import List, Dict
 import math
 
 import pandas as pd
