@@ -129,7 +129,7 @@ class QallseBase(ABC):
             self._create_triplets()
         
         start = time.process_time()
-        sorted_dplets = self.sort_doublets(hit_table, dplets)
+        #sorted_dplets = self.sort_doublets(hit_table, dplets)
         sort_time = time.process_time - start
         
         start = time.process_time()
@@ -288,8 +288,13 @@ class QallseBase(ABC):
                         valid_triplets[di_idx][do_idx] = 1
         return valid_triplets
         
-    @staticmethod
+    '''@staticmethod
     @jit(nopython=True, parallel=True)
+    def make_triplets_from_sorted_dplets(hits, dplets):
+         valid_triplets'''
+        
+    @staticmethod
+    #@jit(nopython=True, parallel=True)
     def sort_doublets(hits, doublets):
         print('Starting...')
         Factor = 0.01
