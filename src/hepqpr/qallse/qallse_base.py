@@ -17,9 +17,9 @@ from .data_structures import *
 from .data_wrapper import DataWrapper
 
 from .utils import tracks_to_xplets, curvature, angle_diff
-
 from .utils import tracks_to_xplets
 
+from scipy.sparse import csr_matrix
 
 class ConfigBase(ABC):
     """Encapsulate parameters for a model. The parameters can be defined as class attributes."""
@@ -47,7 +47,8 @@ class ConfigBase(ABC):
 # ============================================================
 
 class QallseBase(ABC):
-    """Abstract base class of a Qallse model. Handles everything except the hard cuts and the qubo weights computations."""
+    """Abstract base class of a Qallse model. Handles everything except the hard cuts and the qubo weights
+    computations."""
 
     def __init__(self, dataw: DataWrapper, **config):
         """Initialise a model with the given dataset. All other parameters will override the default configuration."""
@@ -87,7 +88,7 @@ class QallseBase(ABC):
 
 
 
-    def build_model(self, doublets: Union[pd.DataFrame, List, np.array], test_mode=False, compare=False):
+    def build_model(self, doublets: Union[pd.DataFrame, List, np.array], test_mode=False):
         """
         Do the preprocessing, i.e. prepare everything so the QUBO can be generated.
         This includes creating the structures (hits, doublets, triplets, quadruplets) and computing the weights.
@@ -96,7 +97,7 @@ class QallseBase(ABC):
         :return: self (for chaining)
         """
         self.hard_cuts_stats = self.hard_cuts_stats[:1]
-        
+        print('build_model')
         # --- Reformat hits DataFrame to Array
         initial_doublets = doublets.values.astype(np.int64)
         hits = self.dataw.hits
@@ -113,8 +114,9 @@ class QallseBase(ABC):
         cols = hit_df.columns.tolist()
         hit_df = hit_df[cols]
         hit_table = hit_df.values.astype(np.int64)
-        
+
         # --- Build doublet table w/ hit indices for fast accessing
+        print('build doublet table w/ indices')
         dplets = np.zeros(initial_doublets.shape, dtype=np.int64)
         hit_ids = hit_table.T[0]
         dplet_key = dict([(hit_ids[index], index) for index in range(hit_ids.shape[0])])
@@ -122,39 +124,34 @@ class QallseBase(ABC):
             for j in range(initial_doublets.shape[1]):
                 if not initial_doublets[i, j] == 0:
                     dplets[i, j] = dplet_key[initial_doublets[i, j]]
-        
-        # --- Build Triplets and Quadruplets
-        if compare:
-            self._create_doublets(initial_doublets)
-            self._create_triplets()
-        
+
+        # --- Sort Doublets
+        print('sort doublets')
         start = time.process_time()
-        #sorted_dplets = self.sort_doublets(hit_table, dplets)
-        sort_time = time.process_time - start
-        
+        sorted_dplets = self.sort_doublets(hit_table, dplets)
+        sort_time = time.process_time() - start
+
+        # --- Make Triplets
+        print('make triplets')
         start = time.process_time()
-        p_tplets = self._parallel_create_triplets(hit_table, dplets)
+        print('Doublets: ', doublets.shape[0])
+        tplets = self._create_triplets(hit_table, dplets, sorted_dplets)
         triplet_time = time.process_time() - start
-        
-        # --- Comparing serial and  parallel triplets
-        if compare:
-            print('Serial Triplets Created: ', len(self.triplets))
-            print('Parallel Triplets Created: ', len(p_tplets))
-            missing = sum([1 for tplet in p_tplets if (tplet in self.triplets)])
-            print('Missing: ', missing, '   %Crossover: ', (missing//len(p_tplets))*100)
-        
+
+        '''# --- Make Quadruplets
+        print('make quadruplets')
         start = time.process_time()
         self._create_quadruplets()
-        quadruplet_time = time.process_time() - start
-        
-        if compare or test_mode:
+        quadruplet_time = time.process_time() - start'''
+
+        if test_mode:
             print('--> Build model times')
-            print('Doublet sort time:    ', 0)
+            print('Doublet sort time:    ', sort_time)
             print('Triplet construction time:    ', triplet_time)
-            #print('Quadruplet construction time: ', quadruplet_time) 
+            #print('Quadruplet construction time: ', quadruplet_time)
             print()
-            return 0
-		
+            return tplets
+
         '''
         start_time = time.process_time()
         self.hard_cuts_stats = self.hard_cuts_stats[:1]
@@ -224,7 +221,7 @@ class QallseBase(ABC):
 
     # ---------------------------------------------
 
-    def _create_doublets(self, initial_doublets):
+    '''def _create_doublets(self, initial_doublets):
         # Generate Doublet structures from the initial doublets, calling _is_invalid_doublet to apply early cuts
         doublets = []
         for (start_id, end_id) in initial_doublets:
@@ -246,16 +243,16 @@ class QallseBase(ABC):
 
 
         self.logger.info(f'created {len(doublets)} doublets.')
-        self.doublets = doublets
+        self.doublets = doublets'''
 
-	
+
     @abstractmethod
     def _is_invalid_doublet(self, dblet: Doublet) -> bool:
         # [ABSTRACT] Apply early cuts on doublets, return True if the doublet should be discarded.
         pass
 
 
-    def _create_triplets(self):
+    '''def _create_triplets(self):
         # Generate Triplet structures from Doublets, calling _is_invalid_triplet to apply early cuts
         triplets = []
         for d1 in self.doublets:
@@ -266,51 +263,70 @@ class QallseBase(ABC):
                     d2.inner.append(t)
                     triplets.append(t)
         self.logger.info(f'created {len(triplets)} triplets.')
-        self.triplets = triplets
+        self.triplets = triplets'''
 
-    
-    def _parallel_create_triplets(self, hits, doublets):
-        print('Number of hits: ', hits.shape[0])
-        print('Number of doublets: ', doublets.shape[0])
-        tplet_array = self.make_triplets(hits, doublets)
-    
-    
+
+    def _create_triplets(self, hits, doublets, dplet_ref):
+        chunk_size, triplets = 5000, []
+        if chunk_size > doublets.shape[0]:
+            chunk_size = doublets.shape[0]
+        start, end = 0, 0
+        while end < doublets.shape[0]:
+            end += chunk_size
+            if end > doublets.shape[0]:
+                end = doublets.shape[0]
+            triplet_chunk = self.make_triplets(hits, doublets, dplet_ref, start, end)
+            triplets.extend(list(self.flatten(doublets, triplet_chunk, start)))
+            start = end
+        return np.array(triplets)
+
     @staticmethod
     @jit(nopython=True, parallel=True)
-    def make_triplets(hits, doublets):
-        valid_triplets = np.zeros((doublets.shape[0], doublets.shape[0]), dtype=np.int8)
-        for di_idx in prange(doublets.shape[0]):
-            for do_idx in prange(doublets.shape[0]):
+    def make_triplets(hits, doublets, dplet_ref, start, end):
+        valid_triplets = np.zeros((doublets.shape[0], end - start), dtype=np.int8)
+        for di_idx in prange(start, end):
+            for ref_idx in prange(dplet_ref[doublets[di_idx, 1]].shape[0]):
+                do_idx = dplet_ref[doublets[di_idx, 1], ref_idx]
+                if do_idx == -1:
+                    break
                 di, do = doublets[di_idx], doublets[do_idx]
-                if di[1] == do[0]:
-                    h1, h2, h3 = hits[di[0]], hits[di[1]], hits[do[1]]
-                    if triplet_filter(h1, h2, h3):
-                        valid_triplets[di_idx][do_idx] = 1
+                h1, h2, h3 = hits[di[0]], hits[di[1]], hits[do[1]]
+                if triplet_filter(h1, h2, h3):
+                    valid_triplets[di_idx, do_idx - start] = 1
         return valid_triplets
-        
-    '''@staticmethod
-    @jit(nopython=True, parallel=True)
-    def make_triplets_from_sorted_dplets(hits, dplets):
-         valid_triplets'''
-        
+
     @staticmethod
-    #@jit(nopython=True, parallel=True)
+    @jit(nopython=True, parallel=False)
+    def flatten(doublets, chunk, start):
+        tplets, count = np.zeros((np.sum(chunk), 3), dtype=np.int64), 0
+        for di_idx in range(chunk.shape[0]):
+            for do_idx in range(chunk.shape[1]):
+                if chunk[di_idx, do_idx]:
+                    tplets[count] = np.array([doublets[di_idx, 0],
+                                              doublets[di_idx, 1],
+                                              doublets[do_idx+start, 1]])
+                    count += 1
+        return tplets
+
+    @staticmethod
+    @jit(nopython=True, parallel=True)
     def sort_doublets(hits, doublets):
-        print('Starting...')
-        Factor = 0.01
-        dplet_grouping = [[] for _ in range(hits.shape[0])]
+        Factor = 0.005
+        inner_hit_bin = np.ones((hits.shape[0], int(hits.shape[0]*Factor)), dtype=np.int64) * -1
         for di in prange(doublets.shape[0]):
-            dplet_grouping[doublets[di, 0]].append(doublets[di])
-            dplet_grouping[doublets[di, 1]].append(doublets[di])
-        print('Finished')
-            
-    
-    
-    
-    
-    
-    
-    
+            insert_idx = where(inner_hit_bin[doublets[di, 0]], -1)
+            if insert_idx > int(hits.shape[0]*Factor):
+                print('Error: Increase Factor')
+            inner_hit_bin[doublets[di, 0], insert_idx] = di
+        return inner_hit_bin
+
+
+
+
+
+
+
+
     '''
     @staticmethod
     @jit(nopython=True, parallel=True)
@@ -339,7 +355,7 @@ class QallseBase(ABC):
                     d1_dz = abs(h1[4]-h2[4])
                     d2_dr = math.hypot(h2[2], h2[3]) - math.hypot(h3[2], h3[3])
                     d2_dz = abs(h2[4]-h3[4])
-                    tplet_drz = angle_diff(math.atan2(d1_dz, d1_dr), math.atan2(d2_dz, d2_dr)) 
+                    tplet_drz = angle_diff(math.atan2(d1_dz, d1_dr), math.atan2(d2_dz, d2_dr))
                     if tplet_drz > tplet_max_drz:
                         keep[tplet_index] = False
                     else:
@@ -368,10 +384,10 @@ class QallseBase(ABC):
         d1_dz = abs(h1[4]-h2[4])
         d2_dr = math.hypot(h2[2], h2[3]) - math.hypot(h3[2], h3[3])
         d2_dz = abs(h2[4]-h3[4])
-        tplet_drz = angle_diff(math.atan2(d1_dz, d1_dr), math.atan2(d2_dz, d2_dr)) 
+        tplet_drz = angle_diff(math.atan2(d1_dz, d1_dr), math.atan2(d2_dz, d2_dr))
         if tplet_drz > tplet_max_drz:
             return True
-        return False    
+        return False
     '''
 
 
@@ -531,6 +547,4 @@ def where(lst, val):
 		if lst[index] == val:
 			return index
 		index += 1
-	return index #will cause out of range error      
-            
-
+	return index #will cause out of range error

@@ -75,7 +75,10 @@ class Qallse(QallseBase):
         return pd_read_csv_array(self.hard_cuts_stats)
 
     def build_model(self, *args, **kwargs):
-        super().build_model(*args, **kwargs)
+        if kwargs['test_mode']:
+            return super().build_model(*args, **kwargs)
+        else:
+            super().build_model(*args, **kwargs)
         # add stats information to the logs
         self.log_build_stats()
 
